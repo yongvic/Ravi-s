@@ -6,10 +6,10 @@ async function main() {
 
   // Create demo admin user
   const adminUser = await prisma.user.upsert({
-    where: { email: 'admin@balieschool.com' },
+    where: { email: 'admin@ravischool.com' },
     update: {},
     create: {
-      email: 'admin@balieschool.com',
+      email: 'admin@ravischool.com',
       name: 'Admin',
       password: await bcrypt.hash('AdminPassword123!', 10),
       role: 'ADMIN',
@@ -20,10 +20,10 @@ async function main() {
 
   // Create demo student user
   const studentUser = await prisma.user.upsert({
-    where: { email: 'student@balieschool.com' },
+    where: { email: 'student@ravischool.com' },
     update: {},
     create: {
-      email: 'student@balieschool.com',
+      email: 'student@ravischool.com',
       name: 'Demo Student',
       password: await bcrypt.hash('StudentPassword123!', 10),
       role: 'STUDENT',
@@ -44,3 +44,4 @@ main()
     await prisma.$disconnect();
     process.exit(1);
   });
+

@@ -1,16 +1,13 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from 'sonner'
+import { Providers } from './providers'
 import './globals.css'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
-
 export const metadata: Metadata = {
-  title: 'Bali\'s School - Master English for Flight Attendants',
-  description: 'Gamified English learning platform designed for future flight attendants. Master customer service, emergency procedures, and professional communication in English.',
-  keywords: ['English learning', 'flight attendant', 'aviation English', 'customer service'],
+  title: "Ravi's - Apprentissage de l'anglais cabine",
+  description: "Plateforme française d'apprentissage de l'anglais pour futurs personnels navigants commerciaux.",
+  keywords: ['apprentissage anglais', 'personnel cabine', 'anglais aéronautique', 'service client'],
   generator: 'v0.app',
   icons: {
     icon: [
@@ -45,12 +42,15 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="fr" suppressHydrationWarning>
       <body className="font-sans antialiased bg-background text-foreground">
-        {children}
-        <Toaster />
-        <Analytics />
+        <Providers>
+          {children}
+          <Toaster />
+          <Analytics />
+        </Providers>
       </body>
     </html>
   )
 }
+

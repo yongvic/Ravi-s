@@ -3,14 +3,9 @@
 import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, CheckCircle, AlertTriangle, Upload, Loader } from 'lucide-react';
+import { AlertCircle, CheckCircle, AlertTriangle, Upload, Loader, Video, Square, Eraser, BadgeCheck } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-  validateVideo,
-  formatValidationErrors,
-  formatValidationWarnings,
-  ValidationResult,
-} from '@/lib/video-validation';
+import { validateVideo, ValidationResult } from '@/lib/video-validation';
 
 interface VideoUploadSectionProps {
   exerciseId: string;
@@ -29,23 +24,14 @@ export function VideoUploadSection({ exerciseId, onUploadSuccess }: VideoUploadS
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: true,
-      });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9,opus' });
 
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm;codecs=vp9,opus',
-      });
-
-      mediaRecorder.ondataavailable = (e) => {
-        chunksRef.current.push(e.data);
-      };
-
+      mediaRecorder.ondataavailable = (e) => chunksRef.current.push(e.data);
       mediaRecorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: 'video/webm' });
         setRecordedBlob(blob);
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) => track.stop());
       };
 
       mediaRecorderRef.current = mediaRecorder;
@@ -53,9 +39,9 @@ export function VideoUploadSection({ exerciseId, onUploadSuccess }: VideoUploadS
       mediaRecorder.start();
       setIsRecording(true);
       setValidation(null);
-      toast.success('Recording started');
+      toast.success('Enregistrement démarré');
     } catch (error) {
-      toast.error('Failed to access camera/microphone');
+      toast.error('Impossible d\'accéder à la caméra/micro');
       console.error(error);
     }
   };
@@ -64,7 +50,7 @@ export function VideoUploadSection({ exerciseId, onUploadSuccess }: VideoUploadS
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      toast.success('Recording stopped');
+      toast.success('Enregistrement arrêté');
     }
   };
 
@@ -73,22 +59,19 @@ export function VideoUploadSection({ exerciseId, onUploadSuccess }: VideoUploadS
     setValidation(null);
 
     try {
-      const file = new File([blob], `exercise-${exerciseId}.webm`, {
-        type: 'video/webm',
-      });
-
+      const file = new File([blob], `exercise-${exerciseId}.webm`, { type: 'video/webm' });
       const result = await validateVideo(file);
       setValidation(result);
 
       if (result.isValid) {
-        toast.success('Video validation passed');
+        toast.success('Validation vidéo réussie');
       } else {
-        toast.error('Video validation failed');
+        toast.error('La vidéo ne respecte pas les contraintes');
       }
 
       return result.isValid;
     } catch (error) {
-      toast.error('Error validating video');
+      toast.error('Erreur de validation vidéo');
       console.error(error);
       return false;
     } finally {
@@ -98,15 +81,12 @@ export function VideoUploadSection({ exerciseId, onUploadSuccess }: VideoUploadS
 
   const handleSubmit = async () => {
     if (!recordedBlob) {
-      toast.error('Please record a video first');
+      toast.error('Enregistrez une vidéo avant de soumettre');
       return;
     }
 
-    // Validate before upload
     const isValid = await validateFile(recordedBlob);
-    if (!isValid) {
-      return;
-    }
+    if (!isValid) return;
 
     setIsSubmitting(true);
 
@@ -115,20 +95,15 @@ export function VideoUploadSection({ exerciseId, onUploadSuccess }: VideoUploadS
       formData.append('file', recordedBlob, `exercise-${exerciseId}.webm`);
       formData.append('exerciseId', exerciseId);
 
-      const response = await fetch('/api/videos/upload', {
-        method: 'POST',
-        body: formData,
-      });
+      const response = await fetch('/api/videos/upload', { method: 'POST', body: formData });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to upload video');
+        throw new Error(error.message || 'Échec d\'upload vidéo');
       }
 
       const data = await response.json();
-      toast.success('Video submitted for review!');
-
-      // Reset
+      toast.success('Vidéo soumise pour revue');
       setRecordedBlob(null);
       chunksRef.current = [];
       setValidation(null);
@@ -137,7 +112,7 @@ export function VideoUploadSection({ exerciseId, onUploadSuccess }: VideoUploadS
         onUploadSuccess(data.videoId);
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to submit video');
+      toast.error(error instanceof Error ? error.message : 'Échec de soumission vidéo');
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -146,98 +121,56 @@ export function VideoUploadSection({ exerciseId, onUploadSuccess }: VideoUploadS
 
   return (
     <div className="space-y-6">
-      {/* Recording Area */}
       <Card>
         <CardHeader>
-          <CardTitle>Record Your Response</CardTitle>
+          <CardTitle>Enregistrer votre réponse</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Preview */}
           <div className="rounded-lg border-2 border-dashed border-border bg-muted/50 p-8">
             {recordedBlob ? (
               <div className="space-y-4">
                 <div className="text-center">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 text-green-600 dark:text-green-400 mb-4">
-                    <span className="text-2xl">✓</span>
+                    <BadgeCheck className="w-8 h-8" />
                   </div>
-                  <p className="font-semibold mb-2">Recording Ready</p>
-                  <p className="text-sm text-muted-foreground">
-                    {(recordedBlob.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
+                  <p className="font-semibold mb-2">Enregistrement prêt</p>
+                  <p className="text-sm text-muted-foreground">{(recordedBlob.size / 1024 / 1024).toFixed(2)} MB</p>
                 </div>
-                <video
-                  controls
-                  className="w-full rounded-lg bg-black max-h-96"
-                  src={URL.createObjectURL(recordedBlob)}
-                />
+                <video controls className="w-full rounded-lg bg-black max-h-96" src={URL.createObjectURL(recordedBlob)} />
               </div>
             ) : (
               <div className="text-center space-y-4">
-                <div className="text-4xl">
-                  {isRecording ? '🔴' : '📹'}
-                </div>
-                <p className="text-muted-foreground">
-                  {isRecording ? 'Recording in progress...' : 'Click the button below to start recording'}
-                </p>
+                {isRecording ? <Square className="w-10 h-10 mx-auto text-red-500" /> : <Video className="w-10 h-10 mx-auto text-muted-foreground" />}
+                <p className="text-muted-foreground">{isRecording ? 'Enregistrement en cours...' : 'Cliquez ci-dessous pour démarrer'}</p>
               </div>
             )}
           </div>
 
-          {/* Recording Controls */}
           <div className="flex gap-3">
             {!recordedBlob && (
               <>
                 {!isRecording ? (
-                  <Button
-                    onClick={startRecording}
-                    className="flex-1 gap-2"
-                    size="lg"
-                  >
-                    📹 Start Recording
-                  </Button>
+                  <Button onClick={startRecording} className="flex-1 gap-2" size="lg"><Video className="w-4 h-4" />Démarrer l&apos;enregistrement</Button>
                 ) : (
-                  <Button
-                    onClick={stopRecording}
-                    variant="destructive"
-                    className="flex-1 gap-2"
-                    size="lg"
-                  >
-                    ⏹️ Stop Recording
-                  </Button>
+                  <Button onClick={stopRecording} variant="destructive" className="flex-1 gap-2" size="lg"><Square className="w-4 h-4" />Arrêter l&apos;enregistrement</Button>
                 )}
               </>
             )}
 
             {recordedBlob && (
               <>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setRecordedBlob(null);
-                    chunksRef.current = [];
-                    setValidation(null);
-                  }}
-                  className="flex-1"
-                  size="lg"
-                >
-                  Clear & Re-record
+                <Button variant="outline" onClick={() => { setRecordedBlob(null); chunksRef.current = []; setValidation(null); }} className="flex-1" size="lg">
+                  <Eraser className="w-4 h-4 mr-2" />Effacer et recommencer
                 </Button>
                 {!validation && (
-                  <Button
-                    onClick={() => validateFile(recordedBlob)}
-                    disabled={isValidating}
-                    variant="outline"
-                    className="flex-1"
-                    size="lg"
-                  >
-                    {isValidating ? '⏳ Validating...' : '✓ Validate'}
+                  <Button onClick={() => validateFile(recordedBlob)} disabled={isValidating} variant="outline" className="flex-1" size="lg">
+                    {isValidating ? 'Validation...' : 'Valider'}
                   </Button>
                 )}
               </>
             )}
           </div>
 
-          {/* Validation Results */}
           {validation && (
             <div className="space-y-3">
               {validation.isValid ? (
@@ -245,12 +178,8 @@ export function VideoUploadSection({ exerciseId, onUploadSuccess }: VideoUploadS
                   <div className="flex items-start gap-3">
                     <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-green-700 dark:text-green-400">
-                        Validation Passed
-                      </p>
-                      <p className="text-sm text-green-600 dark:text-green-500 mt-1">
-                        Your video meets all requirements and is ready to submit.
-                      </p>
+                      <p className="font-semibold text-green-700 dark:text-green-400">Validation réussie</p>
+                      <p className="text-sm text-green-600 dark:text-green-500 mt-1">La vidéo respecte les contraintes techniques.</p>
                     </div>
                   </div>
                 </div>
@@ -259,13 +188,9 @@ export function VideoUploadSection({ exerciseId, onUploadSuccess }: VideoUploadS
                   <div className="flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-red-700 dark:text-red-400">
-                        Validation Failed
-                      </p>
+                      <p className="font-semibold text-red-700 dark:text-red-400">Validation échouée</p>
                       <ul className="text-sm text-red-600 dark:text-red-500 mt-2 space-y-1">
-                        {validation.errors.map((error, idx) => (
-                          <li key={idx}>• {error}</li>
-                        ))}
+                        {validation.errors.map((error, idx) => <li key={idx}>• {error}</li>)}
                       </ul>
                     </div>
                   </div>
@@ -277,13 +202,9 @@ export function VideoUploadSection({ exerciseId, onUploadSuccess }: VideoUploadS
                   <div className="flex items-start gap-3">
                     <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-amber-700 dark:text-amber-400">
-                        Warnings
-                      </p>
+                      <p className="font-semibold text-amber-700 dark:text-amber-400">Avertissements</p>
                       <ul className="text-sm text-amber-600 dark:text-amber-500 mt-2 space-y-1">
-                        {validation.warnings.map((warning, idx) => (
-                          <li key={idx}>• {warning}</li>
-                        ))}
+                        {validation.warnings.map((warning, idx) => <li key={idx}>• {warning}</li>)}
                       </ul>
                     </div>
                   </div>
@@ -292,52 +213,23 @@ export function VideoUploadSection({ exerciseId, onUploadSuccess }: VideoUploadS
             </div>
           )}
 
-          {/* Submit Button */}
           {recordedBlob && validation?.isValid && (
-            <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="w-full gap-2"
-              size="lg"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader className="w-4 h-4 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  <Upload className="w-4 h-4" />
-                  Submit for Review
-                </>
-              )}
+            <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full gap-2" size="lg">
+              {isSubmitting ? <><Loader className="w-4 h-4 animate-spin" />Soumission...</> : <><Upload className="w-4 h-4" />Soumettre pour revue</>}
             </Button>
           )}
         </CardContent>
       </Card>
 
-      {/* Requirements */}
       <Card className="border-blue-500/20 bg-blue-500/5">
         <CardHeader>
-          <CardTitle className="text-base">Video Requirements</CardTitle>
+          <CardTitle className="text-base">Exigences vidéo</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
-          <div className="flex items-start gap-2">
-            <span className="text-blue-600 dark:text-blue-400 font-semibold">✓</span>
-            <span>Duration: 10 seconds to 5 minutes</span>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="text-blue-600 dark:text-blue-400 font-semibold">✓</span>
-            <span>Format: WebM, MP4, MOV, or AVI</span>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="text-blue-600 dark:text-blue-400 font-semibold">✓</span>
-            <span>Maximum size: 100 MB</span>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="text-blue-600 dark:text-blue-400 font-semibold">✓</span>
-            <span>Must include both audio and video</span>
-          </div>
+          <div className="flex items-start gap-2"><span className="text-blue-600 dark:text-blue-400 font-semibold">•</span><span>Durée: 10 secondes à 5 minutes</span></div>
+          <div className="flex items-start gap-2"><span className="text-blue-600 dark:text-blue-400 font-semibold">•</span><span>Format: WebM, MP4, MOV ou AVI</span></div>
+          <div className="flex items-start gap-2"><span className="text-blue-600 dark:text-blue-400 font-semibold">•</span><span>Taille maximale: 100 MB</span></div>
+          <div className="flex items-start gap-2"><span className="text-blue-600 dark:text-blue-400 font-semibold">•</span><span>Audio et vidéo obligatoires</span></div>
         </CardContent>
       </Card>
     </div>

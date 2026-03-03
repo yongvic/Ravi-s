@@ -7,7 +7,7 @@ export async function GET(req: Request) {
     
     if (!session?.user?.id || session.user.role !== 'ADMIN') {
       return Response.json(
-        { message: 'Unauthorized' },
+        { message: 'Non autorisé' },
         { status: 403 }
       );
     }
@@ -22,14 +22,14 @@ export async function GET(req: Request) {
           select: { title: true },
         },
       },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { submittedAt: 'asc' },
     });
 
     const formatted = pendingVideos.map(video => ({
       id: video.id,
       studentName: video.user.name,
       exerciseTitle: video.exercise.title,
-      submittedAt: video.createdAt.toISOString(),
+      submittedAt: video.submittedAt.toISOString(),
       duration: video.duration,
     }));
 
@@ -37,8 +37,9 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error('Pending videos error:', error);
     return Response.json(
-      { message: 'Internal server error' },
+      { message: 'Erreur interne du serveur' },
       { status: 500 }
     );
   }
 }
+

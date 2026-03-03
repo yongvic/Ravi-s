@@ -1,8 +1,8 @@
-# Bali's School - Project Summary
+# Ravi's - Project Summary
 
 ## Project Overview
 
-Bali's School is a **gamified English learning platform** designed specifically for flight attendants and aviation professionals. The application combines interactive exercises, video submission, admin review systems, and a comprehensive gamification system with Kiki Points and achievement badges.
+Ravi's is a **gamified English learning platform** designed specifically for flight attendants and aviation professionals. The application combines interactive exercises, video submission, admin review systems, and a comprehensive gamification system with Kiki Points and achievement badges.
 
 **Tech Stack:**
 - Frontend: Next.js 16 (App Router), React 19, TailwindCSS v4
@@ -281,8 +281,8 @@ vercel deploy
 ## Testing & Validation
 
 **Test Accounts:**
-- Admin: `admin@balisschool.com` / `AdminPassword123!`
-- Student: `student@balisschool.com` / `StudentPassword123!`
+- Admin: `admin@ravischool.com` / `AdminPassword123!`
+- Student: `student@ravischool.com` / `StudentPassword123!`
 
 **Build Verification:**
 ```bash
@@ -337,3 +337,4 @@ Checks:
 The project is fully functional with all core features implemented and ready for production deployment on Vercel. All pages, API routes, authentication, and database integration are complete and tested.
 
 **Last Updated:** March 3, 2026
+

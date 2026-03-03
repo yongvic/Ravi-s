@@ -7,7 +7,7 @@ export async function GET(req: Request) {
     
     if (!session?.user?.id || session.user.role !== 'ADMIN') {
       return Response.json(
-        { message: 'Unauthorized' },
+        { message: 'Non autorisé' },
         { status: 403 }
       );
     }
@@ -46,8 +46,9 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error('Students list error:', error);
     return Response.json(
-      { message: 'Internal server error' },
+      { message: 'Erreur interne du serveur' },
       { status: 500 }
     );
   }
 }
+

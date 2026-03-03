@@ -1,50 +1,53 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { HelpCircle, Mail, AlertCircle } from 'lucide-react';
+import { HelpCircle, Mail, AlertCircle, CheckCircle2, Clapperboard, Target, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function SupportPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      {/* Header */}
       <div className="border-b border-border/40 bg-background/95 backdrop-blur sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold">Help & Support</h1>
-          <p className="text-muted-foreground mt-1">Get answers to common questions</p>
+          <h1 className="text-3xl font-bold">Aide & support</h1>
+          <p className="text-muted-foreground mt-1">Retrouvez les réponses aux questions fréquentes</p>
         </div>
       </div>
 
-      {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-        {/* FAQs */}
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold">Frequently Asked Questions</h2>
-          
+          <h2 className="text-2xl font-bold">Questions fréquentes</h2>
+
           {[
             {
-              question: 'How does the 12-week learning plan work?',
-              answer: 'Your personalized plan is divided into three 4-week phases: Foundation, Intermediate, and Advanced. Each week includes targeted exercises and modules tailored to your English level.',
+              question: "Comment fonctionne le plan d'apprentissage sur 12 semaines ?",
+              answer:
+                'Votre plan est structuré en trois phases de 4 semaines: Fondation, Intermédiaire et Avancé, avec des exercices adaptés à votre niveau.',
             },
             {
-              question: 'How do I earn Kiki Points?',
-              answer: 'You earn points by completing exercises, submitting videos, maintaining streaks, and unlocking badges. Each activity has different point values. The more you practice, the more points you earn!',
+              question: 'Comment gagner des points Kiki ?',
+              answer:
+                'Vous gagnez des points en complétant des exercices, en soumettant des vidéos, en maintenant votre régularité et en débloquant des badges.',
             },
             {
-              question: 'What should I do if my video submission is rejected?',
-              answer: 'Check the feedback provided by the instructor. Use their suggestions to improve your pronunciation and try again. Every submission is an opportunity to learn and improve.',
+              question: 'Que faire si ma vidéo est refusée ?',
+              answer:
+                'Consultez le feedback de validation, corrigez les points demandés puis soumettez une nouvelle version.',
             },
             {
-              question: 'Can I change my proficiency level?',
-              answer: 'Yes! You can update your English level by completing the onboarding again. This will regenerate your learning plan based on your new level.',
+              question: 'Puis-je modifier mon niveau ?',
+              answer:
+                'Oui, vous pouvez refaire l’onboarding pour régénérer un plan correspondant à votre niveau actuel.',
             },
             {
-              question: 'How long does it take to complete the program?',
-              answer: 'The standard program is 12 weeks. However, you can progress at your own pace. Some learners may complete it faster, while others may take longer.',
+              question: 'Combien de temps dure le programme ?',
+              answer:
+                'Le parcours standard dure 12 semaines, mais vous pouvez progresser à votre rythme.',
             },
             {
-              question: 'What exercise modes are available?',
-              answer: 'You have access to 8 different exercise modes: Passenger Service, Accent Training, Emergency Scenarios, Role-Play, Listening, Wheel of English, Secret Challenge, and Custom Scenarios.',
+              question: 'Quels modes sont disponibles ?',
+              answer:
+                'Lecture, Quiz, Vocabulaire, Speaking, Simulation cabine, Passenger, Accent Training, Secret Challenge, Wheel of English, Love & English, Urgence, Interview Compagnie et Lost Passenger.',
             },
           ].map((faq, idx) => (
             <Card key={idx}>
@@ -61,99 +64,83 @@ export default function SupportPage() {
           ))}
         </div>
 
-        {/* Contact Support */}
         <Card className="border-2 border-primary/20 bg-primary/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Mail className="w-5 h-5" />
-              Still Need Help?
+              Besoin d&apos;aide supplémentaire ?
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-muted-foreground">
-              If you can't find the answer to your question, don't hesitate to reach out to our support team.
-            </p>
+            <p className="text-muted-foreground">Si vous ne trouvez pas votre réponse, contactez notre équipe support.</p>
             <Button className="gap-2">
               <Mail className="w-4 h-4" />
-              Contact Support
+              Contacter le support
             </Button>
           </CardContent>
         </Card>
 
-        {/* Tips & Best Practices */}
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold">Tips for Success</h2>
-          
+          <h2 className="text-2xl font-bold">Bonnes pratiques</h2>
+
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <span>✅</span> Consistency is Key
+                <CheckCircle2 className="w-5 h-5 text-primary" /> Régularité
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Try to complete at least one exercise daily. Consistent practice leads to better results and helps you maintain learning streaks.
-              </p>
+              <p className="text-sm text-muted-foreground">Faites au moins un exercice par jour pour garder une progression stable.</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <span>🎬</span> Make the Most of Video Feedback
+                <Clapperboard className="w-5 h-5 text-primary" /> Feedback vidéo
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Pay close attention to instructor feedback on your video submissions. Implement the suggestions in your next attempt to see rapid improvement.
-              </p>
+              <p className="text-sm text-muted-foreground">Appliquez les retours de validation sur vos prochaines soumissions.</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <span>🎯</span> Follow Your Learning Plan
+                <Target className="w-5 h-5 text-primary" /> Suivre votre plan
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Your learning plan is designed based on your goals and proficiency level. Following it in order ensures you build a strong foundation.
-              </p>
+              <p className="text-sm text-muted-foreground">Respectez l’ordre des modules pour construire des bases solides.</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <span>🏆</span> Aim for the Badges
+                <Trophy className="w-5 h-5 text-primary" /> Objectif badges
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Work towards achievement badges. They provide motivation and are milestones that mark your progress through the program.
-              </p>
+              <p className="text-sm text-muted-foreground">Les badges matérialisent vos jalons pédagogiques.</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Technical Issues */}
         <Card className="border-destructive/20 bg-destructive/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-destructive">
-              <AlertCircle className="w-5 h-5" />
-              Reporting Technical Issues
+              <AlertCircle className="w-5 h-5" /> Signaler un problème technique
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              If you experience any technical difficulties with the platform:
-            </p>
+            <p className="text-sm text-muted-foreground">En cas de difficulté technique :</p>
             <ul className="text-sm text-muted-foreground space-y-2 list-disc list-inside">
-              <li>Clear your browser cache and reload the page</li>
-              <li>Try using a different browser</li>
-              <li>Check your internet connection</li>
-              <li>Contact our technical support team if issues persist</li>
+              <li>Videz le cache de votre navigateur puis rechargez la page</li>
+              <li>Testez avec un autre navigateur</li>
+              <li>Vérifiez votre connexion internet</li>
+              <li>Contactez le support technique si le problème persiste</li>
             </ul>
           </CardContent>
         </Card>

@@ -17,7 +17,9 @@ interface ProgressData {
 }
 
 export default function ProgressPage() {
-  const { data: session, status } = useSession();
+  const sessionState = useSession();
+  const session = sessionState?.data;
+  const status = sessionState?.status ?? 'loading';
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -29,8 +31,8 @@ export default function ProgressPage() {
     const fetchProgress = async () => {
       try {
         const response = await fetch('/api/user/progress');
-        if (!response.ok) throw new Error('Failed to fetch progress');
-        
+        if (!response.ok) throw new Error('Échec de récupération de progression');
+
         const data = await response.json();
         setProgress(data);
       } catch (err) {
@@ -50,7 +52,7 @@ export default function ProgressPage() {
       <div className="min-h-screen bg-gradient-to-b from-background to-muted flex items-center justify-center">
         <div className="text-center space-y-4">
           <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary" />
-          <p className="text-muted-foreground">Loading your progress...</p>
+          <p className="text-muted-foreground">Chargement de votre progression...</p>
         </div>
       </div>
     );
@@ -58,25 +60,21 @@ export default function ProgressPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      {/* Header */}
       <div className="border-b border-border/40 bg-background/95 backdrop-blur sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold">Your Progress</h1>
-          <p className="text-muted-foreground mt-1">Track your learning journey</p>
+          <h1 className="text-3xl font-bold">Votre progression</h1>
+          <p className="text-muted-foreground mt-1">Suivez votre évolution semaine après semaine</p>
         </div>
       </div>
 
-      {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         {progress && (
           <>
-            {/* Key Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-primary" />
-                    Total Points
+                    <TrendingUp className="w-4 h-4 text-primary" /> Points totaux
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -87,8 +85,7 @@ export default function ProgressPage() {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-orange-500" />
-                    This Week
+                    <Calendar className="w-4 h-4 text-orange-500" /> Cette semaine
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -99,8 +96,7 @@ export default function ProgressPage() {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <Target className="w-4 h-4 text-green-500" />
-                    This Month
+                    <Target className="w-4 h-4 text-green-500" /> Ce mois-ci
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -110,7 +106,7 @@ export default function ProgressPage() {
 
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-semibold">Level</CardTitle>
+                  <CardTitle className="text-sm font-semibold">Niveau</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-3xl font-bold text-primary">{progress.currentLevel}</p>
@@ -118,67 +114,57 @@ export default function ProgressPage() {
               </Card>
             </div>
 
-            {/* Completion Progress */}
             <Card>
               <CardHeader>
-                <CardTitle>Overall Progress</CardTitle>
+                <CardTitle>Progression globale</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold">Course Completion</span>
+                    <span className="text-sm font-semibold">Achèvement du parcours</span>
                     <span className="text-sm text-muted-foreground">{progress.completionPercentage}%</span>
                   </div>
                   <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-primary to-primary/50 transition-all duration-500"
-                      style={{ width: `${progress.completionPercentage}%` }}
-                    ></div>
+                    <div className="h-full bg-gradient-to-r from-primary to-primary/50 transition-all duration-500" style={{ width: `${progress.completionPercentage}%` }}></div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Statistics */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Exercises Completed</CardTitle>
+                  <CardTitle>Exercices terminés</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-4xl font-bold text-primary">{progress.exercisesCompleted}</p>
-                  <p className="text-sm text-muted-foreground mt-2">Total exercises finished</p>
+                  <p className="text-sm text-muted-foreground mt-2">Nombre total d&apos;exercices validés</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Videos Submitted</CardTitle>
+                  <CardTitle>Vidéos soumises</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-4xl font-bold text-blue-600 dark:text-blue-400">{progress.videosSubmitted}</p>
-                  <p className="text-sm text-muted-foreground mt-2">Videos uploaded for review</p>
+                  <p className="text-sm text-muted-foreground mt-2">Vidéos envoyées pour revue</p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Learning Insights */}
             <Card>
               <CardHeader>
-                <CardTitle>Learning Insights</CardTitle>
+                <CardTitle>Insights pédagogiques</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="p-4 rounded-lg bg-muted">
-                  <p className="font-semibold text-sm mb-2">Your Strengths</p>
-                  <p className="text-sm text-muted-foreground">
-                    You&apos;re excelling at listening comprehension and practical exercises.
-                  </p>
+                  <p className="font-semibold text-sm mb-2">Points forts</p>
+                  <p className="text-sm text-muted-foreground">Bonne progression sur les exercices pratiques et la compréhension.</p>
                 </div>
                 <div className="p-4 rounded-lg bg-muted">
-                  <p className="font-semibold text-sm mb-2">Areas to Focus On</p>
-                  <p className="text-sm text-muted-foreground">
-                    Consider spending more time on accent training and pronunciation drills.
-                  </p>
+                  <p className="font-semibold text-sm mb-2">Axes de travail</p>
+                  <p className="text-sm text-muted-foreground">Renforcer la prononciation et la fluidité orale dans les scénarios avancés.</p>
                 </div>
               </CardContent>
             </Card>
@@ -188,3 +174,4 @@ export default function ProgressPage() {
     </div>
   );
 }
+

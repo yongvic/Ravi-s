@@ -2,13 +2,16 @@ import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { generatePlanPDF, createPlanHTML } from '@/lib/pdf-generator';
 
-export async function GET(req: Request) {
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
+export async function GET(_req: Request) {
   try {
     const session = await auth();
     
     if (!session?.user?.id || !session.user.name) {
       return Response.json(
-        { message: 'Unauthorized' },
+        { message: 'Non autorisé' },
         { status: 401 }
       );
     }
@@ -17,13 +20,6 @@ export async function GET(req: Request) {
     const onboarding = await prisma.onboarding.findUnique({
       where: { userId: session.user.id },
     });
-
-    if (!onboarding) {
-      return Response.json(
-        { message: 'Onboarding not completed' },
-        { status: 400 }
-      );
-    }
 
     // Get learning plan with modules
     const plan = await prisma.learningPlan.findUnique({
@@ -37,7 +33,7 @@ export async function GET(req: Request) {
 
     if (!plan) {
       return Response.json(
-        { message: 'No learning plan found' },
+        { message: "Aucun plan d'apprentissage trouvé" },
         { status: 404 }
       );
     }
@@ -47,10 +43,10 @@ export async function GET(req: Request) {
       week: module.week,
       title: module.title,
       focus: [
-        'Learn vocabulary and basic phrases',
-        'Practice pronunciation',
-        'Complete interactive exercises',
-        'Earn Kiki Points',
+        'Apprendre le vocabulaire et les phrases clés',
+        'Travailler la prononciation',
+        'Réaliser les exercices interactifs',
+        'Gagner des points Kiki',
       ],
       targetPoints: module.targetPoints,
     }));
@@ -58,11 +54,11 @@ export async function GET(req: Request) {
     // Generate HTML
     const htmlContent = createPlanHTML({
       name: session.user.name,
-      level: onboarding.englishLevel,
-      airport: onboarding.airportName,
-      professionGoal: onboarding.professionGoal,
-      dailyMinutes: onboarding.dailyMinutes,
-      weeklyGoal: onboarding.weeklyGoal,
+      level: onboarding?.englishLevel || 'Non défini',
+      airport: onboarding?.airportName || onboarding?.airportCode || 'Non défini',
+      professionGoal: onboarding?.professionGoal || 'Objectif professionnel à définir',
+      dailyMinutes: onboarding?.dailyMinutes || 30,
+      weeklyGoal: onboarding?.weeklyGoal || 5,
       weeks,
     });
 
@@ -79,8 +75,9 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error('PDF generation error:', error);
     return Response.json(
-      { message: 'Internal server error' },
+      { message: 'Erreur interne du serveur' },
       { status: 500 }
     );
   }
 }
+

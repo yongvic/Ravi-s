@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     
     if (!session?.user?.id) {
       return Response.json(
-        { message: 'Unauthorized' },
+        { message: 'Non autorisé' },
         { status: 401 }
       );
     }
@@ -66,14 +66,14 @@ export async function POST(req: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return Response.json(
-        { message: 'Invalid input', errors: error.errors },
+        { message: 'Données invalides', errors: error.errors },
         { status: 400 }
       );
     }
 
     console.error('Onboarding error:', error);
     return Response.json(
-      { message: 'Internal server error' },
+      { message: 'Erreur interne du serveur' },
       { status: 500 }
     );
   }
@@ -233,3 +233,4 @@ async function createModules(planId: string, englishLevel: string, userId: strin
     }
   }
 }
+

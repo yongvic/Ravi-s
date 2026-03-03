@@ -7,7 +7,7 @@ export async function GET() {
     const session = await auth();
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
     const [kikiPoints, badges, completedExercises] = await Promise.all([
@@ -46,3 +46,4 @@ function calculateProgress(exercisesCompleted: number): number {
   if (exercisesCompleted < 10) return ((exercisesCompleted - 5) / 5) * 100;
   return 100;
 }
+

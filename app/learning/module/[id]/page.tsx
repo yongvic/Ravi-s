@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ExerciseCard } from '@/components/learning/ExerciseCard';
 import { toast } from 'sonner';
 import { ProgressBar } from '@/components/learning/ProgressBar';
+import { CircleCheckBig, ArrowRight, ArrowLeft } from 'lucide-react';
 
 interface Module {
   id: string;
@@ -26,7 +27,8 @@ interface Module {
 }
 
 export default function ModulePage() {
-  const { data: session } = useSession();
+  const sessionState = useSession();
+  const session = sessionState?.data;
   const params = useParams();
   const moduleId = params.id as string;
 
@@ -42,18 +44,24 @@ export default function ModulePage() {
     const fetchModule = async () => {
       try {
         const response = await fetch(`/api/modules/${moduleId}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch module');
+        if (response.status === 423) {
+          const data = await response.json();
+          toast.error(data.message || 'Module bloqué');
+          redirect('/learning-plan');
         }
+
+        if (!response.ok) {
+          throw new Error('Échec de récupération du module');
+        }
+
         const data = await response.json();
         setModule(data);
 
-        // Calculate progress
-        const completedCount = data.exercises.filter((e: any) => e.completed).length;
-        const progress = (completedCount / data.exercises.length) * 100;
+        const completedCount = data.exercises.filter((e: { completed: boolean }) => e.completed).length;
+        const progress = data.exercises.length > 0 ? (completedCount / data.exercises.length) * 100 : 0;
         setWeekProgress(progress);
       } catch (error) {
-        toast.error('Failed to load module');
+        toast.error('Impossible de charger ce module');
         console.error(error);
       } finally {
         setIsLoading(false);
@@ -68,7 +76,7 @@ export default function ModulePage() {
       <div className="min-h-screen bg-gradient-to-b from-background to-muted flex items-center justify-center">
         <Card className="w-full max-w-sm">
           <CardHeader>
-            <CardTitle>Loading Module...</CardTitle>
+            <CardTitle>Chargement du module...</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -83,52 +91,49 @@ export default function ModulePage() {
       <div className="min-h-screen bg-gradient-to-b from-background to-muted flex items-center justify-center">
         <Card className="w-full max-w-sm">
           <CardHeader>
-            <CardTitle>Module Not Found</CardTitle>
+            <CardTitle>Module introuvable</CardTitle>
           </CardHeader>
         </Card>
       </div>
     );
   }
 
-  const completedCount = module.exercises.filter(e => e.completed).length;
-  const earnedPoints = completedCount * 50; // Assuming 50 points per exercise
+  const completedCount = module.exercises.filter((e) => e.completed).length;
+  const earnedPoints = module.exercises
+    .filter((e) => e.completed)
+    .reduce((sum, e) => sum + e.pointsValue, 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted py-8">
       <div className="max-w-6xl mx-auto px-4">
-        {/* Header */}
         <div className="mb-8">
-          <Button variant="outline" onClick={() => window.history.back()} className="mb-4">
-            ← Back to Plan
+          <Button variant="outline" onClick={() => window.history.back()} className="mb-4 gap-2">
+            <ArrowLeft className="w-4 h-4" /> Retour au plan
           </Button>
           <div className="space-y-4">
             <div>
-              <h1 className="text-4xl font-bold mb-2">Week {module.week}</h1>
+              <h1 className="text-4xl font-bold mb-2">Semaine {module.week}</h1>
               <p className="text-lg text-muted-foreground">{module.title}</p>
             </div>
-
-            {module.description && (
-              <p className="text-muted-foreground">{module.description}</p>
-            )}
+            {module.description && <p className="text-muted-foreground">{module.description}</p>}
           </div>
         </div>
 
-        {/* Progress Section */}
         <Card className="mb-8 border-primary/20">
           <CardHeader>
-            <CardTitle className="text-base">Week Progress</CardTitle>
+            <CardTitle className="text-base">Progression hebdomadaire</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <ProgressBar progress={weekProgress} />
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-muted-foreground">Exercises Completed</p>
+                <p className="text-sm text-muted-foreground">Exercices terminés</p>
                 <p className="text-2xl font-bold">
                   {completedCount}/{module.exercises.length}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Kiki Points Earned</p>
+                <p className="text-sm text-muted-foreground">Points Kiki gagnés</p>
                 <p className="text-2xl font-bold text-primary">
                   {earnedPoints}/{module.targetPoints}
                 </p>
@@ -137,11 +142,10 @@ export default function ModulePage() {
           </CardContent>
         </Card>
 
-        {/* Exercises Grid */}
         <div>
-          <h2 className="text-2xl font-bold mb-6">Exercises</h2>
+          <h2 className="text-2xl font-bold mb-6">Exercices</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {module.exercises.map(exercise => (
+            {module.exercises.map((exercise) => (
               <ExerciseCard
                 key={exercise.id}
                 id={exercise.id}
@@ -156,21 +160,19 @@ export default function ModulePage() {
           </div>
         </div>
 
-        {/* Motivational Section */}
         {weekProgress === 100 && (
           <Card className="mt-8 border-2 border-green-500/20 bg-green-500/5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <span>🎉</span> Week Complete!
+                <CircleCheckBig className="w-5 h-5 text-green-600" /> Semaine validée
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
-                Excellent work! You've completed all exercises for this week. 
-                Move on to Week {module.week + 1} to continue your learning journey.
+                Excellent travail. Vous pouvez continuer avec le module suivant.
               </p>
               <Button className="w-full gap-2">
-                <span>Next Week</span> →
+                Module suivant <ArrowRight className="w-4 h-4" />
               </Button>
             </CardContent>
           </Card>

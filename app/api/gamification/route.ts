@@ -7,7 +7,7 @@ export async function GET(req: Request) {
     
     if (!session?.user?.id) {
       return Response.json(
-        { message: 'Unauthorized' },
+        { message: 'Non autorisé' },
         { status: 401 }
       );
     }
@@ -49,9 +49,50 @@ export async function GET(req: Request) {
       select: { id: true },
     });
 
-    // Calculate consecutive days
-    // For now, return a placeholder
-    const consecutiveDays = Math.floor(kikiPoints.totalPoints / 300) || 0;
+    const history = await prisma.pointsHistory.findMany({
+      where: { kikiPointsId: kikiPoints.id },
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true },
+      take: 200,
+    });
+
+    const dayKeys = Array.from(
+      new Set(
+        history.map((h) => {
+          const d = new Date(h.createdAt);
+          d.setHours(0, 0, 0, 0);
+          return d.getTime();
+        })
+      )
+    ).sort((a, b) => b - a);
+
+    let consecutiveDays = 0;
+    if (dayKeys.length > 0) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      // Streak can start today or yesterday.
+      let cursor =
+        dayKeys[0] === today.getTime()
+          ? today
+          : dayKeys[0] === yesterday.getTime()
+          ? yesterday
+          : null;
+
+      if (cursor) {
+        for (const day of dayKeys) {
+          if (day === cursor.getTime()) {
+            consecutiveDays += 1;
+            cursor = new Date(cursor);
+            cursor.setDate(cursor.getDate() - 1);
+          } else if (day < cursor.getTime()) {
+            break;
+          }
+        }
+      }
+    }
 
     return Response.json({
       totalPoints: kikiPoints.totalPoints,
@@ -68,7 +109,7 @@ export async function GET(req: Request) {
         'WHEEL_WINNER',
       ],
       unlockedBadges: badges.map(b => b.badgeType),
-      consecutiveDays: Math.max(consecutiveDays, 1),
+      consecutiveDays,
       milestones: {
         exercisesCompleted: exercises.filter(e => e.completed).length,
         videosSubmitted: videos.length,
@@ -78,8 +119,9 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error('Gamification error:', error);
     return Response.json(
-      { message: 'Internal server error' },
+      { message: 'Erreur interne du serveur' },
       { status: 500 }
     );
   }
 }
+

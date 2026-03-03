@@ -1,9 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, redirect } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,11 +14,11 @@ import { createOnboarding } from './actions';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 
 const steps = [
-  { id: 'goal', title: 'Your Goal', description: 'What brings you here?' },
-  { id: 'level', title: 'English Level', description: 'Assess your current level' },
-  { id: 'availability', title: 'Your Time', description: 'How much time can you dedicate?' },
-  { id: 'challenges', title: 'Challenges', description: 'What areas need improvement?' },
-  { id: 'airport', title: 'Preferred Airport', description: 'Your home airport' },
+  { id: 'goal', title: 'Votre objectif', description: 'Pourquoi êtes-vous ici ?' },
+  { id: 'level', title: "Niveau d'anglais", description: 'Évaluez votre niveau actuel' },
+  { id: 'availability', title: 'Votre disponibilité', description: 'Combien de temps pouvez-vous consacrer ?' },
+  { id: 'challenges', title: 'Difficultés', description: 'Quels domaines améliorer ?' },
+  { id: 'airport', title: 'Aéroport de référence', description: 'Votre aéroport principal' },
 ];
 
 const challengeOptions = [
@@ -35,16 +34,17 @@ const challengeOptions = [
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const sessionState = useSession();
+  const session = sessionState?.data;
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   if (!session?.user) {
     redirect('/auth/signin');
   }
 
   const [formData, setFormData] = useState({
-    professionGoal: 'flight attendant',
+    professionGoal: 'future flight attendant',
     englishLevel: 'B1',
     dailyMinutes: 30,
     weeklyGoal: 5,
@@ -55,10 +55,10 @@ export default function OnboardingPage() {
   });
 
   const handleChallengeToggle = (challenge: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       challenges: prev.challenges.includes(challenge)
-        ? prev.challenges.filter(c => c !== challenge)
+        ? prev.challenges.filter((c) => c !== challenge)
         : [...prev.challenges, challenge],
     }));
   };
@@ -78,10 +78,10 @@ export default function OnboardingPage() {
         return;
       }
 
-      toast.success('Onboarding complete! Generating your plan...');
+      toast.success('Onboarding terminé. Génération du plan...');
       router.push('/dashboard');
     } catch (error) {
-      toast.error('Something went wrong');
+      toast.error('Une erreur est survenue');
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -99,7 +99,7 @@ export default function OnboardingPage() {
       case 3:
         return formData.challenges.length > 0;
       case 4:
-        return !!formData.airportCode;
+        return !!formData.airportCode && !!formData.airportName && formData.motivation.trim().length >= 10;
       default:
         return true;
     }
@@ -108,20 +108,17 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted p-4">
       <div className="max-w-2xl mx-auto">
-        {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex gap-2 mb-4">
             {steps.map((step, i) => (
               <div
                 key={step.id}
-                className={`h-2 flex-1 rounded-full transition-colors ${
-                  i <= currentStep ? 'bg-primary' : 'bg-muted'
-                }`}
+                className={`h-2 flex-1 rounded-full transition-colors ${i <= currentStep ? 'bg-primary' : 'bg-muted'}`}
               />
             ))}
           </div>
           <div className="text-sm text-muted-foreground">
-            Step {currentStep + 1} of {steps.length}
+            Étape {currentStep + 1} sur {steps.length}
           </div>
         </div>
 
@@ -131,30 +128,30 @@ export default function OnboardingPage() {
             <CardDescription>{steps[currentStep].description}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Step 0: Goal */}
             {currentStep === 0 && (
               <div className="space-y-4">
                 <div className="space-y-3">
-                  <Label>What's your primary goal?</Label>
-                  <RadioGroup value={formData.professionGoal} onValueChange={(value) =>
-                    setFormData(prev => ({ ...prev, professionGoal: value }))
-                  }>
+                  <Label>Quel est votre objectif principal ?</Label>
+                  <RadioGroup
+                    value={formData.professionGoal}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, professionGoal: value }))}
+                  >
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="flight attendant" id="fa" />
+                      <RadioGroupItem value="future flight attendant" id="fa" />
                       <Label htmlFor="fa" className="font-normal cursor-pointer">
-                        Become a Flight Attendant
+                        Devenir hôtesse / steward
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="improve profession" id="ip" />
                       <Label htmlFor="ip" className="font-normal cursor-pointer">
-                        Improve English for Aviation Career
+                        Améliorer mon anglais pour ma carrière aérienne
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="personal growth" id="pg" />
                       <Label htmlFor="pg" className="font-normal cursor-pointer">
-                        Personal Growth & Confidence
+                        Développement personnel et confiance
                       </Label>
                     </div>
                   </RadioGroup>
@@ -162,21 +159,28 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {/* Step 1: English Level */}
             {currentStep === 1 && (
               <div className="space-y-4">
                 <div className="space-y-3">
-                  <Label>What's your current English level?</Label>
-                  <RadioGroup value={formData.englishLevel} onValueChange={(value) =>
-                    setFormData(prev => ({ ...prev, englishLevel: value }))
-                  }>
-                    {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map(level => (
+                  <Label>Quel est votre niveau actuel ?</Label>
+                  <RadioGroup
+                    value={formData.englishLevel}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, englishLevel: value }))}
+                  >
+                    {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((level) => (
                       <div key={level} className="flex items-center space-x-2">
                         <RadioGroupItem value={level} id={level} />
                         <Label htmlFor={level} className="font-normal cursor-pointer">
-                          {level} - {
-                            { 'A1': 'Elementary', 'A2': 'Pre-Intermediate', 'B1': 'Intermediate', 
-                              'B2': 'Upper-Intermediate', 'C1': 'Advanced', 'C2': 'Mastery' }[level]
+                          {level} -{' '}
+                          {
+                            {
+                              A1: 'Débutant',
+                              A2: 'Pré-intermédiaire',
+                              B1: 'Intermédiaire',
+                              B2: 'Intermédiaire avancé',
+                              C1: 'Avancé',
+                              C2: 'Maîtrise',
+                            }[level]
                           }
                         </Label>
                       </div>
@@ -186,11 +190,10 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {/* Step 2: Availability */}
             {currentStep === 2 && (
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="daily">Minutes per day: {formData.dailyMinutes}</Label>
+                  <Label htmlFor="daily">Minutes par jour : {formData.dailyMinutes}</Label>
                   <input
                     id="daily"
                     type="range"
@@ -198,12 +201,12 @@ export default function OnboardingPage() {
                     max="120"
                     step="10"
                     value={formData.dailyMinutes}
-                    onChange={(e) => setFormData(prev => ({ ...prev, dailyMinutes: Number(e.target.value) }))}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, dailyMinutes: Number(e.target.value) }))}
                     className="w-full"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="weekly">Hours per week: {formData.weeklyGoal}</Label>
+                  <Label htmlFor="weekly">Heures par semaine : {formData.weeklyGoal}</Label>
                   <input
                     id="weekly"
                     type="range"
@@ -211,19 +214,18 @@ export default function OnboardingPage() {
                     max="20"
                     step="1"
                     value={formData.weeklyGoal}
-                    onChange={(e) => setFormData(prev => ({ ...prev, weeklyGoal: Number(e.target.value) }))}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, weeklyGoal: Number(e.target.value) }))}
                     className="w-full"
                   />
                 </div>
               </div>
             )}
 
-            {/* Step 3: Challenges */}
             {currentStep === 3 && (
               <div className="space-y-4">
-                <Label>Select areas where you need improvement:</Label>
+                <Label>Sélectionnez vos axes d'amélioration :</Label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {challengeOptions.map(challenge => (
+                  {challengeOptions.map((challenge) => (
                     <div key={challenge} className="flex items-center space-x-2">
                       <Checkbox
                         id={challenge}
@@ -239,34 +241,33 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {/* Step 4: Airport */}
             {currentStep === 4 && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="airportCode">Airport Code (e.g., CGK, SIN)</Label>
+                  <Label htmlFor="airportCode">Code aéroport (ex: CDG, ORY)</Label>
                   <Input
                     id="airportCode"
-                    placeholder="CGK"
+                    placeholder="CDG"
                     value={formData.airportCode}
-                    onChange={(e) => setFormData(prev => ({ ...prev, airportCode: e.target.value.toUpperCase() }))}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, airportCode: e.target.value.toUpperCase() }))}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="airportName">Airport Name</Label>
+                  <Label htmlFor="airportName">Nom de l'aéroport</Label>
                   <Input
                     id="airportName"
-                    placeholder="Soekarno-Hatta International Airport"
+                    placeholder="Paris Charles de Gaulle"
                     value={formData.airportName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, airportName: e.target.value }))}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, airportName: e.target.value }))}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="motivation">What motivates you?</Label>
+                  <Label htmlFor="motivation">Qu'est-ce qui vous motive ?</Label>
                   <textarea
                     id="motivation"
-                    placeholder="Tell us what drives you to learn English..."
+                    placeholder="Expliquez ce qui vous motive à apprendre l'anglais..."
                     value={formData.motivation}
-                    onChange={(e) => setFormData(prev => ({ ...prev, motivation: e.target.value }))}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, motivation: e.target.value }))}
                     className="w-full p-2 border border-border rounded-md"
                     rows={3}
                   />
@@ -274,32 +275,23 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {/* Navigation */}
             <div className="flex gap-3 pt-6">
               <Button
                 variant="outline"
-                onClick={() => setCurrentStep(prev => Math.max(0, prev - 1))}
+                onClick={() => setCurrentStep((prev) => Math.max(0, prev - 1))}
                 disabled={currentStep === 0}
               >
                 <ChevronLeft className="w-4 h-4 mr-2" />
-                Previous
+                Précédent
               </Button>
               {currentStep < steps.length - 1 ? (
-                <Button
-                  onClick={() => setCurrentStep(prev => prev + 1)}
-                  disabled={!canProceed()}
-                  className="flex-1"
-                >
-                  Next
+                <Button onClick={() => setCurrentStep((prev) => prev + 1)} disabled={!canProceed()} className="flex-1">
+                  Suivant
                   <ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
-                <Button
-                  onClick={handleSubmit}
-                  disabled={!canProceed() || isLoading}
-                  className="flex-1"
-                >
-                  {isLoading ? 'Creating Plan...' : 'Complete & Generate Plan'}
+                <Button onClick={handleSubmit} disabled={!canProceed() || isLoading} className="flex-1">
+                  {isLoading ? 'Création du plan...' : 'Terminer et générer le plan'}
                 </Button>
               )}
             </div>

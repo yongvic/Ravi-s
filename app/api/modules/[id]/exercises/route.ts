@@ -10,7 +10,7 @@ export async function GET(
     
     if (!session?.user?.id) {
       return Response.json(
-        { message: 'Unauthorized' },
+        { message: 'Non autorisé' },
         { status: 401 }
       );
     }
@@ -34,8 +34,9 @@ export async function GET(
   } catch (error) {
     console.error('Exercises fetch error:', error);
     return Response.json(
-      { message: 'Internal server error' },
+      { message: 'Erreur interne du serveur' },
       { status: 500 }
     );
   }
 }
+

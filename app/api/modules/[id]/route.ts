@@ -7,7 +7,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     
     if (!session?.user?.id) {
       return Response.json(
-        { message: 'Unauthorized' },
+        { message: 'Non autorisé' },
         { status: 401 }
       );
     }
@@ -34,7 +34,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     if (!module) {
       return Response.json(
-        { message: 'Module not found' },
+        { message: 'Module introuvable' },
         { status: 404 }
       );
     }
@@ -42,8 +42,42 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     // Check if user owns this module
     if (module.learningPlan.userId !== session.user.id) {
       return Response.json(
-        { message: 'Unauthorized' },
+        { message: 'Non autorisé' },
         { status: 403 }
+      );
+    }
+
+    // Block access to a module if any previous module has rejected/revision-needed videos.
+    const previousModules = await prisma.module.findMany({
+      where: {
+        planId: module.planId,
+        week: { lt: module.week },
+      },
+      include: {
+        exercises: {
+          where: { userId: session.user.id },
+          include: {
+            videoSubmissions: {
+              select: { status: true },
+            },
+          },
+        },
+      },
+    });
+
+    const blocked = previousModules.some((m) =>
+      m.exercises.some((exercise) =>
+        exercise.videoSubmissions.some((video) => ['REJECTED', 'REVISION_NEEDED'].includes(video.status))
+      )
+    );
+
+    if (blocked) {
+      return Response.json(
+        {
+          message:
+            'Module bloqué: une vidéo d’un module précédent a été refusée ou demande une révision.',
+        },
+        { status: 423 }
       );
     }
 
@@ -53,8 +87,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   } catch (error) {
     console.error('Module fetch error:', error);
     return Response.json(
-      { message: 'Internal server error' },
+      { message: 'Erreur interne du serveur' },
       { status: 500 }
     );
   }
 }
+

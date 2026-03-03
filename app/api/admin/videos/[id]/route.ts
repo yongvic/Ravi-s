@@ -7,7 +7,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     
     if (!session?.user?.id || session.user.role !== 'ADMIN') {
       return Response.json(
-        { message: 'Unauthorized' },
+        { message: 'Non autorisé' },
         { status: 403 }
       );
     }
@@ -26,7 +26,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     if (!video) {
       return Response.json(
-        { message: 'Video not found' },
+        { message: 'Vidéo introuvable' },
         { status: 404 }
       );
     }
@@ -36,13 +36,13 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       studentName: video.user.name,
       exerciseTitle: video.exercise.title,
       blobUrl: video.blobUrl,
-      submittedAt: video.createdAt.toISOString(),
+      submittedAt: video.submittedAt.toISOString(),
       status: video.status,
     });
   } catch (error) {
     console.error('Video fetch error:', error);
     return Response.json(
-      { message: 'Internal server error' },
+      { message: 'Erreur interne du serveur' },
       { status: 500 }
     );
   }
@@ -57,7 +57,7 @@ export async function PATCH(
     
     if (!session?.user?.id || session.user.role !== 'ADMIN') {
       return Response.json(
-        { message: 'Unauthorized' },
+        { message: 'Non autorisé' },
         { status: 403 }
       );
     }
@@ -66,7 +66,7 @@ export async function PATCH(
 
     if (!['APPROVED', 'REJECTED', 'REVISION_NEEDED'].includes(status)) {
       return Response.json(
-        { message: 'Invalid status' },
+        { message: 'Statut invalide' },
         { status: 400 }
       );
     }
@@ -101,6 +101,29 @@ export async function PATCH(
           },
         });
       }
+
+      const [completedExercises, totalExercises] = await Promise.all([
+        prisma.exercise.count({ where: { userId: video.userId, completed: true } }),
+        prisma.exercise.count({ where: { userId: video.userId } }),
+      ]);
+      const progressPercentage =
+        totalExercises > 0 ? Math.round((completedExercises / totalExercises) * 100) : 0;
+      const currentTerminal = Math.min(5, Math.max(1, Math.ceil(progressPercentage / 20)));
+
+      await prisma.airportMap.upsert({
+        where: { userId: video.userId },
+        create: {
+          userId: video.userId,
+          progressPercentage,
+          currentTerminal,
+          completedAreas: [],
+        },
+        update: {
+          progressPercentage,
+          currentTerminal,
+          lastProgressAt: new Date(),
+        },
+      });
     }
 
     // Create admin feedback
@@ -128,8 +151,9 @@ export async function PATCH(
   } catch (error) {
     console.error('Video update error:', error);
     return Response.json(
-      { message: 'Internal server error' },
+      { message: 'Erreur interne du serveur' },
       { status: 500 }
     );
   }
 }
+

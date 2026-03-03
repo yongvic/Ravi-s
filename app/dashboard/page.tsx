@@ -6,14 +6,33 @@ import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plane, LogOut, ArrowRight, Trophy, Target, Calendar } from 'lucide-react';
+import {
+  LogOut,
+  ArrowRight,
+  Shield,
+  GraduationCap,
+  Trophy,
+  ChartColumnIncreasing,
+  ClipboardList,
+  PlayCircle,
+  Video,
+  BarChart3,
+  MessageCircle,
+  Bell,
+  Gift,
+  Map,
+  Sparkles,
+  Settings,
+  Plane,
+} from 'lucide-react';
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 export default function DashboardPage() {
-  const { data: session } = useSession();
+  const sessionState = useSession();
+  const session = sessionState?.data;
   const router = useRouter();
-  const { data: stats, isLoading } = useSWR(`/api/dashboard/stats`, fetcher);
+  const { data: stats, isLoading } = useSWR('/api/dashboard/stats', fetcher);
 
   if (!session?.user) {
     redirect('/auth/signin');
@@ -23,143 +42,165 @@ export default function DashboardPage() {
     await signOut({ redirect: true, redirectUrl: '/' });
   };
 
+  const cards = [
+    {
+      title: "Plan d'apprentissage",
+      description: 'Votre parcours personnalisé sur 12 semaines',
+      icon: ClipboardList,
+      action: () => router.push('/learning-plan'),
+      buttonText: 'Voir le plan',
+    },
+    {
+      title: 'Commencer les exercices',
+      description: 'Réalisez des activités interactives et gagnez des points Kiki',
+      icon: PlayCircle,
+      action: () => router.push('/learn'),
+      buttonText: 'Commencer',
+    },
+    {
+      title: 'Soumettre une vidéo',
+      description: 'Envoyez votre production orale pour validation',
+      icon: Video,
+      action: () => router.push('/submit-video'),
+      buttonText: 'Soumettre',
+    },
+    {
+      title: 'Récompenses',
+      description: 'Suivez vos badges et vos points Kiki',
+      icon: Trophy,
+      action: () => router.push('/gamification'),
+      buttonText: 'Voir les badges',
+    },
+    {
+      title: 'Ma progression',
+      description: "Consultez vos statistiques d'apprentissage",
+      icon: BarChart3,
+      action: () => router.push('/progress'),
+      buttonText: 'Voir les stats',
+    },
+    {
+      title: 'Aide et support',
+      description: 'Consultez les réponses aux questions fréquentes',
+      icon: MessageCircle,
+      action: () => router.push('/support'),
+      buttonText: "Obtenir de l'aide",
+    },
+    {
+      title: 'Notifications',
+      description: 'Suivez les mises à jour de vos soumissions et badges',
+      icon: Bell,
+      action: () => router.push('/notifications'),
+      buttonText: 'Voir les notifications',
+    },
+    {
+      title: 'Boîte à idées',
+      description: "Proposez des idées d'exercices et de scénarios",
+      icon: Gift,
+      action: () => router.push('/wishes'),
+      buttonText: 'Gérer mes souhaits',
+    },
+    {
+      title: 'Carte aéroport',
+      description: 'Visualisez votre progression par terminal',
+      icon: Map,
+      action: () => router.push('/airport-map'),
+      buttonText: 'Voir la carte',
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      {/* Header */}
       <div className="border-b border-border bg-background sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="text-2xl">✈️</div>
-            <div>
-              <h1 className="text-2xl font-bold">Bali&apos;s School</h1>
-            </div>
+            <Plane className="w-6 h-6 text-primary" />
+            <h1 className="text-2xl font-bold">Ravi&apos;s</h1>
           </div>
           <div className="flex items-center gap-4">
             <div>
-              <p className="text-sm text-muted-foreground">Welcome,</p>
+              <p className="text-sm text-muted-foreground">Bienvenue,</p>
               <p className="font-semibold">{session.user.name}</p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleLogout}
-              className="gap-2"
-            >
+            <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
               <LogOut className="w-4 h-4" />
-              Sign Out
+              Déconnexion
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 py-12">
         <div className="space-y-8">
-          {/* Role Badge & Quick Stats */}
           <div className="flex gap-4 flex-wrap">
-            <div className="px-4 py-2 rounded-full bg-primary/10 text-primary font-semibold text-sm">
-              {session.user.role === 'ADMIN' ? '👨‍💼 Admin' : '👩‍🎓 Student'}
+            <div className="px-4 py-2 rounded-full bg-primary/10 text-primary font-semibold text-sm inline-flex items-center gap-2">
+              {session.user.role === 'ADMIN' ? (
+                <>
+                  <Shield className="w-4 h-4" />
+                  Administrateur
+                </>
+              ) : (
+                <>
+                  <GraduationCap className="w-4 h-4" />
+                  Élève
+                </>
+              )}
             </div>
             {!isLoading && stats && (
               <>
-                <div className="px-4 py-2 rounded-full bg-amber-500/10 text-amber-700 font-semibold text-sm">
-                  🏆 {stats.totalPoints} Points
+                <div className="px-4 py-2 rounded-full bg-amber-500/10 text-amber-700 font-semibold text-sm inline-flex items-center gap-2">
+                  <Trophy className="w-4 h-4" />
+                  {stats.totalPoints} points
                 </div>
-                <div className="px-4 py-2 rounded-full bg-green-500/10 text-green-700 font-semibold text-sm">
-                  📈 {stats.badgesUnlocked} Badges
+                <div className="px-4 py-2 rounded-full bg-green-500/10 text-green-700 font-semibold text-sm inline-flex items-center gap-2">
+                  <ChartColumnIncreasing className="w-4 h-4" />
+                  {stats.badgesUnlocked} badges
                 </div>
               </>
             )}
           </div>
 
-          {/* Welcome Section */}
           <div>
-            <h2 className="text-4xl font-bold mb-4">Welcome to Your Learning Dashboard</h2>
+            <h2 className="text-4xl font-bold mb-4">Tableau de bord d&apos;apprentissage</h2>
             <p className="text-lg text-muted-foreground">
-              This is a placeholder for the full dashboard. We&apos;re building your personalized learning experience.
+              Retrouvez toutes vos fonctionnalités de progression et de pratique de l&apos;anglais professionnel.
             </p>
           </div>
 
-          {/* Feature Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                title: 'Learning Plan',
-                description: 'Your 12-week customized English learning path',
-                icon: '📋',
-                action: () => router.push('/learning-plan'),
-                buttonText: 'View Plan',
-              },
-              {
-                title: 'Start Learning',
-                description: 'Complete interactive exercises and earn Kiki Points',
-                icon: '🎯',
-                action: () => router.push('/learn'),
-                buttonText: 'Begin',
-              },
-              {
-                title: 'Submit Video',
-                description: 'Record and submit English practice videos for feedback',
-                icon: '📹',
-                action: () => router.push('/submit-video'),
-                buttonText: 'Submit',
-              },
-              {
-                title: 'Achievements',
-                description: 'Earn Kiki Points and unlock achievement badges',
-                icon: '🏆',
-                action: () => router.push('/gamification'),
-                buttonText: 'View Badges',
-              },
-              {
-                title: 'My Progress',
-                description: 'Track your learning journey and stats',
-                icon: '📊',
-                action: () => router.push('/progress'),
-                buttonText: 'View Stats',
-              },
-              {
-                title: 'Help & Support',
-                description: 'Get answers to common questions',
-                icon: '💬',
-                action: () => router.push('/support'),
-                buttonText: 'Get Help',
-              },
-            ].map((item, i) => (
-              <Card key={i} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="text-3xl mb-2">{item.icon}</div>
-                  <CardTitle>{item.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={item.action}
-                    className="w-full"
-                  >
-                    {item.buttonText}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+            {cards.map((item, i) => {
+              const Icon = item.icon;
+              return (
+                <Card key={i} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <Icon className="w-7 h-7 text-primary mb-2" />
+                    <CardTitle>{item.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                    <Button variant="outline" size="sm" onClick={item.action} className="w-full">
+                      {item.buttonText}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           {session.user.role === 'STUDENT' && (
             <Card className="border-2 border-primary/20 bg-primary/5">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <span>🚀</span> Next Steps
+                  <Sparkles className="w-5 h-5" />
+                  Prochaines étapes
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground">
-                  Start your journey by completing your onboarding to get a personalized learning plan!
+                  Finalisez votre onboarding pour obtenir un plan personnalisé.
                 </p>
                 <Button className="gap-2" onClick={() => router.push('/onboarding')}>
-                  <span>Begin Onboarding</span>
+                  Commencer l&apos;onboarding
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </CardContent>
@@ -170,15 +211,16 @@ export default function DashboardPage() {
             <Card className="border-2 border-amber-500/20 bg-amber-500/5">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <span>⚙️</span> Admin Panel
+                  <Settings className="w-5 h-5" />
+                  Espace administration
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground">
-                  Access admin tools to review student submissions, manage content, and monitor progress.
+                  Accédez aux outils de revue des vidéos et de suivi des élèves.
                 </p>
                 <Button variant="outline" className="gap-2" onClick={() => router.push('/admin')}>
-                  <span>Go to Admin Dashboard</span>
+                  Aller au tableau admin
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </CardContent>
@@ -189,3 +231,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import { BarChart3, Users, Video, MessageSquare } from 'lucide-react';
+import { BarChart3, Users, Video, MessageSquare, Trophy, Clapperboard, BookOpen } from 'lucide-react';
 
 interface AdminStats {
   totalStudents: number;
@@ -37,7 +37,8 @@ interface Student {
 }
 
 export default function AdminDashboardPage() {
-  const { data: session } = useSession();
+  const sessionState = useSession();
+  const session = sessionState?.data;
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [pendingVideos, setPendingVideos] = useState<PendingVideo[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
@@ -75,7 +76,7 @@ export default function AdminDashboardPage() {
           setStudents(studentsData);
         }
       } catch (error) {
-        toast.error('Failed to load admin data');
+        toast.error('Impossible de charger les données admin');
         console.error(error);
       } finally {
         setIsLoading(false);
@@ -90,7 +91,7 @@ export default function AdminDashboardPage() {
       <div className="min-h-screen bg-gradient-to-b from-background to-muted flex items-center justify-center">
         <Card className="w-full max-w-sm">
           <CardHeader>
-            <CardTitle>Loading Admin Dashboard...</CardTitle>
+            <CardTitle>Chargement du tableau admin...</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -105,9 +106,9 @@ export default function AdminDashboardPage() {
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
+          <h1 className="text-4xl font-bold mb-2">Tableau de bord admin</h1>
           <p className="text-lg text-muted-foreground">
-            Manage students, review videos, and monitor platform activity
+            Gérez les élèves, les vidéos et l'activité de la plateforme
           </p>
         </div>
 
@@ -117,7 +118,7 @@ export default function AdminDashboardPage() {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Users className="w-4 h-4" /> Students
+                  <Users className="w-4 h-4" /> Élèves
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -128,7 +129,7 @@ export default function AdminDashboardPage() {
             <Card className="border-orange-500/20 bg-orange-500/5">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Video className="w-4 h-4" /> Pending Videos
+                  <Video className="w-4 h-4" /> Vidéos en attente
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -141,7 +142,7 @@ export default function AdminDashboardPage() {
             <Card className="border-green-500/20 bg-green-500/5">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4" /> Approved
+                  <MessageSquare className="w-4 h-4" /> Approuvées
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -154,7 +155,7 @@ export default function AdminDashboardPage() {
             <Card className="border-blue-500/20 bg-blue-500/5">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4" /> Exercises
+                  <BarChart3 className="w-4 h-4" /> Exercices
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -167,7 +168,7 @@ export default function AdminDashboardPage() {
             <Card className="border-purple-500/20 bg-purple-500/5">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <span>🎯</span> Points
+                  <Trophy className="w-4 h-4" /> Points
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -183,13 +184,13 @@ export default function AdminDashboardPage() {
         <Tabs defaultValue="pending" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="pending" className="gap-2">
-              <span>🎬</span> Pending Videos ({pendingVideos.length})
+              <Clapperboard className="w-4 h-4" /> Vidéos en attente ({pendingVideos.length})
             </TabsTrigger>
             <TabsTrigger value="students" className="gap-2">
-              <span>👥</span> Students ({students.length})
+              <Users className="w-4 h-4" /> Élèves ({students.length})
             </TabsTrigger>
             <TabsTrigger value="content" className="gap-2">
-              <span>📚</span> Content Management
+              <BookOpen className="w-4 h-4" /> Gestion de contenu
             </TabsTrigger>
           </TabsList>
 
@@ -198,11 +199,11 @@ export default function AdminDashboardPage() {
             {pendingVideos.length === 0 ? (
               <Card>
                 <CardHeader>
-                  <CardTitle>No Pending Videos</CardTitle>
+                  <CardTitle>Aucune vidéo en attente</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    All student video submissions have been reviewed!
+                    Toutes les vidéos soumises ont été revues.
                   </p>
                 </CardContent>
               </Card>
@@ -215,22 +216,22 @@ export default function AdminDashboardPage() {
                         <div>
                           <CardTitle className="text-lg">{video.exerciseTitle}</CardTitle>
                           <p className="text-sm text-muted-foreground mt-1">
-                            By {video.studentName}
+                            Par {video.studentName}
                           </p>
                         </div>
                         <Badge variant="outline" className="bg-orange-500/10 text-orange-700 dark:text-orange-400">
-                          Pending
+                          En attente
                         </Badge>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>Submitted: {new Date(video.submittedAt).toLocaleDateString()}</span>
-                        {video.duration && <span>Duration: {video.duration}s</span>}
+                        <span>Soumise le: {new Date(video.submittedAt).toLocaleDateString()}</span>
+                        {video.duration && <span>Durée: {video.duration}s</span>}
                       </div>
                       <Link href={`/admin/review/${video.id}`}>
                         <Button className="w-full gap-2">
-                          <span>Review & Provide Feedback</span> →
+                          <span>Revoir et donner un feedback</span> →
                         </Button>
                       </Link>
                     </CardContent>
@@ -246,10 +247,10 @@ export default function AdminDashboardPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left py-3 px-4 font-semibold">Name</th>
+                    <th className="text-left py-3 px-4 font-semibold">Nom</th>
                     <th className="text-left py-3 px-4 font-semibold">Email</th>
-                    <th className="text-left py-3 px-4 font-semibold">Exercises</th>
-                    <th className="text-left py-3 px-4 font-semibold">Videos</th>
+                    <th className="text-left py-3 px-4 font-semibold">Exercices</th>
+                    <th className="text-left py-3 px-4 font-semibold">Vidéos</th>
                     <th className="text-left py-3 px-4 font-semibold">Actions</th>
                   </tr>
                 </thead>
@@ -263,7 +264,7 @@ export default function AdminDashboardPage() {
                       <td className="py-3 px-4">
                         <Link href={`/admin/students/${student.id}`}>
                           <Button variant="outline" size="sm">
-                            View Details
+                            Voir le détail
                           </Button>
                         </Link>
                       </td>
@@ -278,37 +279,37 @@ export default function AdminDashboardPage() {
           <TabsContent value="content" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Exercise Management</CardTitle>
+                <CardTitle>Gestion des exercices</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground mb-4">
-                  Manage exercises, modules, and learning content
+                  Gérez les exercices, modules et contenus
                 </p>
                 <Button variant="outline" className="w-full">
-                  Add New Exercise
+                  Ajouter un exercice
                 </Button>
                 <Button variant="outline" className="w-full">
-                  Manage Modules
+                  Gérer les modules
                 </Button>
                 <Button variant="outline" className="w-full">
-                  View Content Library
+                  Voir la bibliothèque
                 </Button>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Badge & Gamification Settings</CardTitle>
+                <CardTitle>Paramètres badges et gamification</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground mb-4">
-                  Configure points, badges, and reward system
+                  Configurez les points, badges et récompenses
                 </p>
                 <Button variant="outline" className="w-full">
-                  Edit Point Values
+                  Modifier les points
                 </Button>
                 <Button variant="outline" className="w-full">
-                  Configure Badges
+                  Configurer les badges
                 </Button>
               </CardContent>
             </Card>
@@ -318,3 +319,4 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+

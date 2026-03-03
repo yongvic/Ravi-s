@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "================================================"
-echo "Testing Next.js Build - Bali's School"
+echo "Testing Next.js Build - Ravi's"
 echo "================================================"
 echo ""
 
@@ -52,3 +52,4 @@ echo "✓ ALL TESTS PASSED - BUILD SUCCESSFUL"
 echo "================================================"
 echo ""
 echo "Project is ready for deployment!"
+

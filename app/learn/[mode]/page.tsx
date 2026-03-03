@@ -1,0 +1,301 @@
+'use client';
+
+import { useSession } from 'next-auth/react';
+import { redirect, useParams } from 'next/navigation';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from 'sonner';
+import { ArrowLeft, Volume2, Mic, CheckCircle2 } from 'lucide-react';
+import Link from 'next/link';
+
+type Scenario = {
+  id: number;
+  prompt: string;
+  points: number;
+  pronunciationWord?: string;
+};
+
+type ExerciseContent = {
+  title: string;
+  description: string;
+  scenarios: Scenario[];
+};
+
+const exerciseContent: Record<string, ExerciseContent> = {
+  reading: {
+    title: 'Lecture en anglais',
+    description: 'Lisez puis répondez en anglais.',
+    scenarios: [
+      { id: 1, prompt: 'Read: "Welcome aboard. Today we are flying to Singapore." Then summarize it in one sentence.', points: 40 },
+      { id: 2, prompt: 'Read: "Please place your bags in the overhead compartment." Then rephrase politely.', points: 40 },
+    ],
+  },
+  quiz: {
+    title: 'Quiz',
+    description: 'Répondez aux questions en anglais.',
+    scenarios: [
+      { id: 1, prompt: 'Question: What is the correct phrase to request seat belt fastening?', points: 45 },
+      { id: 2, prompt: 'Question: Which phrase is most professional for meal service?', points: 45 },
+    ],
+  },
+  vocabulary: {
+    title: 'Vocabulaire',
+    description: 'Utilisez le vocabulaire aéronautique en contexte.',
+    scenarios: [
+      { id: 1, prompt: 'Use these words in a sentence: "turbulence", "galley", "boarding pass".', points: 50 },
+      { id: 2, prompt: 'Explain the difference between "aisle" and "emergency exit".', points: 50 },
+    ],
+  },
+  speaking: {
+    title: 'Speaking',
+    description: 'Parlez clairement et naturellement en anglais.',
+    scenarios: [
+      { id: 1, prompt: 'Introduce yourself as a flight attendant and welcome passengers.', points: 60 },
+      { id: 2, prompt: 'Handle a polite complaint about seat comfort.', points: 60 },
+    ],
+  },
+  'cabin-simulation': {
+    title: 'Simulation cabine',
+    description: 'Simulez des interactions réalistes en cabine.',
+    scenarios: [
+      { id: 1, prompt: 'A passenger asks for a special meal after service ended. Respond professionally.', points: 65 },
+      { id: 2, prompt: 'Make a short boarding announcement in English.', points: 65 },
+    ],
+  },
+  passenger: {
+    title: 'Passenger Mode',
+    description: 'Répondez aux demandes fréquentes des passagers.',
+    scenarios: [
+      { id: 1, prompt: 'A passenger asks: "Could you help me find my seat?"', points: 50 },
+      { id: 2, prompt: 'A passenger requests: "I need a blanket and pillow, please."', points: 50 },
+      { id: 3, prompt: 'A passenger asks: "Can I have a vegetarian meal?"', points: 50 },
+    ],
+  },
+  accent: {
+    title: 'Accent Training Mode',
+    description: 'Travaillez la prononciation.',
+    scenarios: [
+      { id: 1, prompt: 'Say the word clearly and naturally.', pronunciationWord: 'Schedule', points: 60 },
+      { id: 2, prompt: 'Say the word clearly and naturally.', pronunciationWord: 'Colleague', points: 60 },
+      { id: 3, prompt: 'Say the word clearly and naturally.', pronunciationWord: 'Maintenance', points: 60 },
+    ],
+  },
+  secret: {
+    title: 'Secret Challenge Mode',
+    description: 'Répondez à un scénario surprise en anglais.',
+    scenarios: [
+      { id: 1, prompt: 'A VIP passenger lost a document. Handle the situation calmly.', points: 70 },
+      { id: 2, prompt: 'You have 20 seconds to announce a gate change politely.', points: 70 },
+    ],
+  },
+  wheel: {
+    title: 'Wheel of English',
+    description: 'Scénario oral aléatoire.',
+    scenarios: [
+      { id: 1, prompt: 'Wheel result: Delay announcement. Explain the delay in a reassuring tone.', points: 55 },
+      { id: 2, prompt: 'Wheel result: Beverage service. Offer options clearly.', points: 55 },
+    ],
+  },
+  'love-english': {
+    title: 'Love & English Mode',
+    description: 'Communication relation client premium.',
+    scenarios: [
+      { id: 1, prompt: 'Deliver warm and professional service language for a family with children.', points: 50 },
+      { id: 2, prompt: 'Help an anxious passenger feel reassured before takeoff.', points: 50 },
+    ],
+  },
+  emergency: {
+    title: 'Mode Urgence',
+    description: 'Entraînez-vous aux phrases de sécurité critiques.',
+    scenarios: [
+      { id: 1, prompt: '"Fasten your seatbelts and keep them fastened"', points: 75 },
+      { id: 2, prompt: '"In case of decompression, oxygen masks will automatically drop"', points: 75 },
+      { id: 3, prompt: '"Brace for impact"', points: 75 },
+    ],
+  },
+  'company-interview': {
+    title: 'Mode Interview Compagnie',
+    description: 'Préparez les entretiens compagnie en anglais.',
+    scenarios: [
+      { id: 1, prompt: 'Answer: "Why do you want to work as cabin crew for our airline?"', points: 65 },
+      { id: 2, prompt: 'Answer: "How do you handle a difficult passenger?"', points: 65 },
+    ],
+  },
+  'lost-passenger': {
+    title: 'Lost Passenger Mode',
+    description: 'Aidez les voyageurs désorientés.',
+    scenarios: [
+      { id: 1, prompt: 'A passenger is at the wrong gate and is panicking. Assist in English.', points: 55 },
+      { id: 2, prompt: 'A non-native passenger cannot find baggage claim. Give clear directions.', points: 55 },
+    ],
+  },
+};
+
+export default function LearnModePage() {
+  const sessionState = useSession();
+  const session = sessionState?.data;
+  const params = useParams();
+  const mode = params.mode as string;
+  const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (!session?.user) {
+    redirect('/auth/signin');
+  }
+
+  const exercise = exerciseContent[mode];
+  if (!exercise) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Exercice introuvable</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground mb-4">Ce mode n&apos;est pas disponible.</p>
+            <Button asChild className="w-full">
+              <Link href="/learn">Retour aux exercices</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const scenario = exercise.scenarios[currentScenarioIndex];
+  const totalScenarios = exercise.scenarios.length;
+  const progress = ((currentScenarioIndex + 1) / totalScenarios) * 100;
+
+  const handleRecordToggle = () => {
+    setIsRecording((prev) => !prev);
+    if (!isRecording) {
+      toast.success('Enregistrement démarré. Répondez en anglais.');
+    }
+  };
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('/api/exercises/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          exerciseId: `${mode}_${scenario.id}`,
+          points: scenario.points,
+          mode,
+          title: exercise.title,
+          content: scenario.prompt,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Échec de la soumission');
+
+      toast.success(`Réponse validée: +${scenario.points} points Kiki`);
+
+      if (currentScenarioIndex < totalScenarios - 1) {
+        setCurrentScenarioIndex(currentScenarioIndex + 1);
+        setIsRecording(false);
+      } else {
+        toast.success('Exercice terminé.');
+      }
+    } catch (error) {
+      toast.error('Impossible de soumettre cet exercice');
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted">
+      <div className="border-b border-border/40 sticky top-0 z-50 bg-background/95 backdrop-blur">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/learn" className="gap-2">
+              <ArrowLeft className="w-4 h-4" />
+              Retour
+            </Link>
+          </Button>
+          <h1 className="text-xl font-bold">{exercise.title}</h1>
+          <div className="w-20 text-right text-sm text-muted-foreground">
+            {currentScenarioIndex + 1}/{totalScenarios}
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="mb-8">
+          <div className="h-2 bg-secondary rounded-full overflow-hidden">
+            <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+          </div>
+          <p className="text-sm text-muted-foreground mt-2">
+            Scénario {currentScenarioIndex + 1} sur {totalScenarios}
+          </p>
+        </div>
+
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="text-2xl">{exercise.title}</CardTitle>
+            <p className="text-sm text-muted-foreground">{exercise.description}</p>
+          </CardHeader>
+          <CardContent className="space-y-8">
+            <div className="bg-muted p-6 rounded-lg space-y-4">
+              <p className="text-lg font-semibold">Prompt (EN):</p>
+              <p className="text-xl">{scenario.prompt}</p>
+              {scenario.pronunciationWord && (
+                <div>
+                  <p className="text-lg font-semibold mt-4 mb-2">Word:</p>
+                  <div className="text-4xl font-bold text-primary mb-4">{scenario.pronunciationWord}</div>
+                  <Button variant="outline" size="lg" className="gap-2">
+                    <Volume2 className="w-5 h-5" />
+                    Écouter la prononciation
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              <p className="font-semibold">Votre réponse (à l&apos;oral)</p>
+              <div
+                className={`p-8 rounded-lg border-2 flex items-center justify-center ${
+                  isRecording
+                    ? 'border-red-500 bg-red-50 dark:bg-red-950'
+                    : 'border-dashed border-muted-foreground/30 bg-muted'
+                }`}
+              >
+                {isRecording ? (
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="w-4 h-4 rounded-full bg-red-500 animate-pulse" />
+                    <p className="text-sm text-muted-foreground">Enregistrement en cours...</p>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">Cliquez pour démarrer l&apos;enregistrement</p>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <Button onClick={handleRecordToggle} variant={isRecording ? 'destructive' : 'outline'} size="lg" className="flex-1">
+                  <Mic className="w-4 h-4 mr-2" />
+                  {isRecording ? "Arrêter l'enregistrement" : "Démarrer l'enregistrement"}
+                </Button>
+                <Button onClick={handleSubmit} disabled={!isRecording || isSubmitting} size="lg" className="flex-1">
+                  {isSubmitting ? 'Soumission...' : `Valider (+${scenario.points} pts)`}
+                </Button>
+              </div>
+            </div>
+
+            <div className="bg-primary/10 p-4 rounded-lg text-sm flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-primary" />
+              <p>
+                <strong>{scenario.points} points Kiki</strong> seront crédités après validation.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+

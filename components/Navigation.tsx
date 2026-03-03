@@ -5,9 +5,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { Plane, Menu } from 'lucide-react';
 
 export function Navigation() {
-  const { data: session } = useSession();
+  const sessionState = useSession();
+  const session = sessionState?.data;
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -18,13 +20,16 @@ export function Navigation() {
   const isActive = (path: string) => pathname.startsWith(path);
 
   const studentLinks = [
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/learning-plan', label: 'Learning Plan' },
-    { href: '/gamification', label: 'Achievements' },
+    { href: '/dashboard', label: 'Tableau de bord' },
+    { href: '/learning-plan', label: "Plan d'apprentissage" },
+    { href: '/gamification', label: 'Récompenses' },
+    { href: '/notifications', label: 'Notifications' },
+    { href: '/wishes', label: 'Boîte à idées' },
+    { href: '/airport-map', label: 'Carte aéroport' },
   ];
 
   const adminLinks = [
-    { href: '/admin/dashboard', label: 'Admin' },
+    { href: '/admin/dashboard', label: 'Administration' },
   ];
 
   const links = session.user.role === 'ADMIN' ? adminLinks : studentLinks;
@@ -33,8 +38,8 @@ export function Navigation() {
     <nav className="border-b border-border bg-background sticky top-0 z-40">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl">
-          <span className="text-2xl">✈️</span>
-          <span>Bali&apos;s School</span>
+          <Plane className="w-5 h-5 text-primary" />
+          <span>Ravi&apos;s</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -53,6 +58,15 @@ export function Navigation() {
 
         {/* User Menu */}
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            aria-label="Ouvrir le menu"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            <Menu className="h-4 w-4" />
+          </Button>
           <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
             <span>{session.user.name}</span>
           </div>
@@ -61,7 +75,7 @@ export function Navigation() {
             size="sm"
             onClick={() => signOut({ redirect: true, redirectUrl: '/' })}
           >
-            Sign Out
+            Déconnexion
           </Button>
         </div>
       </div>
@@ -88,3 +102,5 @@ export function Navigation() {
     </nav>
   );
 }
+
+

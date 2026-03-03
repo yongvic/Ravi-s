@@ -4,16 +4,13 @@ import { put } from '@vercel/blob';
 
 const ALLOWED_VIDEO_TYPES = ['video/webm', 'video/mp4', 'video/quicktime', 'video/x-msvideo'];
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
-const MAX_DURATION = 5 * 60; // 5 minutes
-const MIN_DURATION = 10; // 10 seconds
-
 export async function POST(req: Request) {
   try {
     const session = await auth();
     
     if (!session?.user?.id) {
       return Response.json(
-        { message: 'Unauthorized' },
+        { message: 'Non autorisé' },
         { status: 401 }
       );
     }
@@ -24,7 +21,7 @@ export async function POST(req: Request) {
 
     if (!file || !exerciseId) {
       return Response.json(
-        { message: 'Missing required fields' },
+        { message: 'Champs requis manquants' },
         { status: 400 }
       );
     }
@@ -33,7 +30,7 @@ export async function POST(req: Request) {
     if (!ALLOWED_VIDEO_TYPES.includes(file.type)) {
       return Response.json(
         {
-          message: `Unsupported video format. Allowed types: ${ALLOWED_VIDEO_TYPES.join(', ')}`,
+          message: `Format vidéo non supporté. Formats autorisés: ${ALLOWED_VIDEO_TYPES.join(', ')}`,
         },
         { status: 400 }
       );
@@ -44,7 +41,7 @@ export async function POST(req: Request) {
       const sizeMB = (file.size / 1024 / 1024).toFixed(1);
       return Response.json(
         {
-          message: `File size ${sizeMB}MB exceeds maximum of 100MB`,
+          message: `Taille du fichier ${sizeMB}MB supérieure à 100MB`,
         },
         { status: 400 }
       );
@@ -53,7 +50,7 @@ export async function POST(req: Request) {
     // Validate file size minimum (at least 1KB)
     if (file.size < 1024) {
       return Response.json(
-        { message: 'File is too small' },
+        { message: 'Le fichier est trop petit' },
         { status: 400 }
       );
     }
@@ -68,7 +65,7 @@ export async function POST(req: Request) {
 
     if (!exercise) {
       return Response.json(
-        { message: 'Exercise not found' },
+        { message: 'Exercice introuvable' },
         { status: 404 }
       );
     }
@@ -85,7 +82,7 @@ export async function POST(req: Request) {
     if (existingVideo) {
       return Response.json(
         {
-          message: 'You already have a submission for this exercise',
+          message: 'Vous avez déjà une soumission pour cet exercice',
         },
         { status: 409 }
       );
@@ -104,7 +101,7 @@ export async function POST(req: Request) {
     } catch (uploadError) {
       console.error('Blob upload error:', uploadError);
       return Response.json(
-        { message: 'Failed to upload video to storage' },
+        { message: "Échec de l'envoi de la vidéo vers le stockage" },
         { status: 500 }
       );
     }
@@ -124,7 +121,7 @@ export async function POST(req: Request) {
 
     return Response.json(
       {
-        message: 'Video uploaded successfully',
+        message: 'Vidéo envoyée avec succès',
         videoId: video.id,
         url: blob.url,
       },
@@ -133,8 +130,9 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('Video upload error:', error);
     return Response.json(
-      { message: 'Internal server error' },
+      { message: 'Erreur interne du serveur' },
       { status: 500 }
     );
   }
 }
+

@@ -9,14 +9,14 @@ async function setupDatabase() {
   try {
     // Create a test admin user if it doesn't exist
     const adminExists = await prisma.user.findUnique({
-      where: { email: "admin@balisschool.com" },
+      where: { email: "admin@ravischool.com" },
     });
 
     if (!adminExists) {
       const hashedPassword = await hash("AdminPassword123!", 10);
       const adminUser = await prisma.user.create({
         data: {
-          email: "admin@balisschool.com",
+          email: "admin@ravischool.com",
           name: "Admin",
           password: hashedPassword,
           role: "ADMIN",
@@ -29,14 +29,14 @@ async function setupDatabase() {
 
     // Create a test student user if it doesn't exist
     const studentExists = await prisma.user.findUnique({
-      where: { email: "student@balisschool.com" },
+      where: { email: "student@ravischool.com" },
     });
 
     if (!studentExists) {
       const hashedPassword = await hash("StudentPassword123!", 10);
       const studentUser = await prisma.user.create({
         data: {
-          email: "student@balisschool.com",
+          email: "student@ravischool.com",
           name: "Test Student",
           password: hashedPassword,
           role: "STUDENT",
@@ -76,3 +76,4 @@ async function setupDatabase() {
 }
 
 setupDatabase();
+

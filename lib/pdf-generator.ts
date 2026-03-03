@@ -1,19 +1,29 @@
 import puppeteer from 'puppeteer';
 
-export async function generatePlanPDF(htmlContent: string, filename: string = 'learning-plan.pdf'): Promise<Buffer> {
+export async function generatePlanPDF(htmlContent: string): Promise<Buffer> {
   let browser;
   
   try {
-    browser = await puppeteer.launch({
+    const launchArgs: Parameters<typeof puppeteer.launch>[0] = {
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });
+      timeout: 60000,
+    };
 
-    const page = await browser.createPage();
+    // Sandbox flags are mainly required in Linux/containerized environments.
+    if (process.platform === 'linux') {
+      launchArgs.args = ['--no-sandbox', '--disable-setuid-sandbox'];
+    }
+
+    browser = await puppeteer.launch(launchArgs);
+
+    const page = await browser.newPage();
+    page.setDefaultTimeout(60000);
+    page.setDefaultNavigationTimeout(60000);
     
-    // Set content
+    // Avoid networkidle waits for static HTML to reduce timeout risk.
     await page.setContent(htmlContent, {
-      waitUntil: 'networkidle0',
+      waitUntil: 'domcontentloaded',
+      timeout: 60000,
     });
 
     // Generate PDF
@@ -26,6 +36,7 @@ export async function generatePlanPDF(htmlContent: string, filename: string = 'l
         left: '1cm',
       },
       printBackground: true,
+      timeout: 60000,
     });
 
     return pdf;
@@ -184,9 +195,9 @@ export function createPlanHTML(data: {
 </head>
 <body>
   <div class="header">
-    <h1>✈️ Your 12-Week Learning Plan</h1>
-    <p>Bali's School - Master English for Aviation</p>
-    <p>Generated: ${new Date().toLocaleDateString('en-US', { 
+    <h1>Plan d'apprentissage sur 12 semaines</h1>
+    <p>Ravi's - Anglais professionnel pour l'aérien</p>
+    <p>Généré le: ${new Date().toLocaleDateString('fr-FR', { 
       year: 'numeric', 
       month: 'long', 
       day: 'numeric'
@@ -195,37 +206,37 @@ export function createPlanHTML(data: {
 
   <div class="profile">
     <div class="profile-item">
-      <strong>Student Name</strong>
+      <strong>Nom de l'élève</strong>
       ${data.name}
     </div>
     <div class="profile-item">
-      <strong>English Level</strong>
+      <strong>Niveau d'anglais</strong>
       ${data.level}
     </div>
     <div class="profile-item">
-      <strong>Professional Goal</strong>
+      <strong>Objectif professionnel</strong>
       ${data.professionGoal}
     </div>
     <div class="profile-item">
-      <strong>Home Airport</strong>
+      <strong>Aéroport de référence</strong>
       ${data.airport}
     </div>
     <div class="profile-item">
-      <strong>Daily Commitment</strong>
+      <strong>Temps quotidien</strong>
       ${data.dailyMinutes} minutes
     </div>
     <div class="profile-item">
-      <strong>Weekly Target</strong>
-      ${data.weeklyGoal} hours
+      <strong>Objectif hebdomadaire</strong>
+      ${data.weeklyGoal} heures
     </div>
   </div>
 
   <div class="section">
-    <h2>Your 12-Week Roadmap</h2>
+    <h2>Votre feuille de route sur 12 semaines</h2>
     
     <div style="margin-bottom: 30px;">
-      <h3 style="color: #0066cc; font-size: 16px; margin-bottom: 10px;">Weeks 1-4: Foundation Phase</h3>
-      <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Build strong fundamentals with basic aviation English vocabulary and common phrases.</p>
+      <h3 style="color: #0066cc; font-size: 16px; margin-bottom: 10px;">Semaines 1-4: Phase Fondation</h3>
+      <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Consolider les bases avec le vocabulaire aéronautique essentiel.</p>
     </div>
 
     ${data.weeks.slice(0, 4).map(week => weekHTML(week)).join('')}
@@ -235,8 +246,8 @@ export function createPlanHTML(data: {
 
   <div class="section">
     <div style="margin-bottom: 30px;">
-      <h3 style="color: #0066cc; font-size: 16px; margin-bottom: 10px;">Weeks 5-8: Intermediate Phase</h3>
-      <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Master customer service scenarios and develop confidence in complex conversations.</p>
+      <h3 style="color: #0066cc; font-size: 16px; margin-bottom: 10px;">Semaines 5-8: Phase Intermédiaire</h3>
+      <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Maîtriser les échanges de service client et les situations variées.</p>
     </div>
 
     ${data.weeks.slice(4, 8).map(week => weekHTML(week)).join('')}
@@ -244,16 +255,16 @@ export function createPlanHTML(data: {
 
   <div class="section">
     <div style="margin-bottom: 30px;">
-      <h3 style="color: #0066cc; font-size: 16px; margin-bottom: 10px;">Weeks 9-12: Advanced Phase</h3>
-      <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Polish your skills with advanced scenarios and comprehensive review for certification readiness.</p>
+      <h3 style="color: #0066cc; font-size: 16px; margin-bottom: 10px;">Semaines 9-12: Phase Avancée</h3>
+      <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Perfectionner les compétences avec des scénarios avancés et une révision globale.</p>
     </div>
 
     ${data.weeks.slice(8, 12).map(week => weekHTML(week)).join('')}
   </div>
 
   <div class="footer">
-    <p>This plan is personalized based on your profile and learning goals.</p>
-    <p>Follow the weekly modules and earn Kiki Points to track your progress!</p>
+    <p>Ce plan est personnalisé selon votre profil et vos objectifs.</p>
+    <p>Suivez les modules hebdomadaires et cumulez des points Kiki pour suivre votre progression.</p>
   </div>
 </body>
 </html>
@@ -263,12 +274,13 @@ export function createPlanHTML(data: {
 function weekHTML(week: { week: number; title: string; focus: string[]; targetPoints: number }): string {
   return `
     <div class="week">
-      <div class="week-header">Week ${week.week}</div>
+      <div class="week-header">Semaine ${week.week}</div>
       <div class="week-title">${week.title}</div>
       <ul class="focus-items">
         ${week.focus.map(item => `<li>${item}</li>`).join('')}
       </ul>
-      <div class="points">Target: ${week.targetPoints} Kiki Points</div>
+      <div class="points">Objectif: ${week.targetPoints} points Kiki</div>
     </div>
   `;
 }
+

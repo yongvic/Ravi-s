@@ -10,7 +10,7 @@ export async function POST(
     
     if (!session?.user?.id || session.user.role !== 'ADMIN') {
       return Response.json(
-        { message: 'Unauthorized' },
+        { message: 'Non autorisé' },
         { status: 403 }
       );
     }
@@ -25,15 +25,24 @@ export async function POST(
 
     if (!video) {
       return Response.json(
-        { message: 'Video not found' },
+        { message: 'Vidéo introuvable' },
         { status: 404 }
       );
     }
 
-    // Create feedback record
-    const feedback = await prisma.adminFeedback.create({
-      data: {
+    // Create or update feedback record
+    const feedback = await prisma.adminFeedback.upsert({
+      where: { videoId: params.id },
+      create: {
         videoId: params.id,
+        adminId: session.user.id,
+        decision,
+        textFeedback,
+        grade,
+        strengths: strengths || [],
+        improvements: improvements || [],
+      },
+      update: {
         adminId: session.user.id,
         decision,
         textFeedback,
@@ -68,8 +77,9 @@ export async function POST(
   } catch (error) {
     console.error('Feedback submission error:', error);
     return Response.json(
-      { message: 'Internal server error' },
+      { message: 'Erreur interne du serveur' },
       { status: 500 }
     );
   }
 }
+

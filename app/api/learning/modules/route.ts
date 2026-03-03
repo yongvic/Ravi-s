@@ -7,7 +7,7 @@ export async function GET() {
     const session = await auth();
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
     const learningPlan = await prisma.learningPlan.findUnique({
@@ -18,6 +18,11 @@ export async function GET() {
           include: {
             exercises: {
               where: { userId: session.user.id },
+              include: {
+                videoSubmissions: {
+                  select: { status: true },
+                },
+              },
             },
           },
         },
@@ -25,13 +30,36 @@ export async function GET() {
     });
 
     if (!learningPlan) {
-      return NextResponse.json({ error: 'No learning plan found' }, { status: 404 });
+      return NextResponse.json({ error: "Aucun plan d'apprentissage trouvé" }, { status: 404 });
     }
 
+    let blockedByPreviousRefusal = false;
+    const modules = learningPlan.modules.map((module) => {
+      const hasRefusedVideo = module.exercises.some((exercise) =>
+        exercise.videoSubmissions.some((video) => ['REJECTED', 'REVISION_NEEDED'].includes(video.status))
+      );
+
+      const locked = blockedByPreviousRefusal;
+      if (hasRefusedVideo) {
+        blockedByPreviousRefusal = true;
+      }
+
+      return {
+        ...module,
+        locked,
+        blockedReason: locked
+          ? 'Un exercice vidéo précédent a été refusé. Corrigez-le avant de continuer.'
+          : null,
+      };
+    });
+
+    const currentIndex = modules.findIndex((m) => !m.locked && m.exercises.some((e) => !e.completed));
+    const focusIndex = currentIndex >= 0 ? Math.min(currentIndex, learningPlan.weeklyFocus.length - 1) : 0;
+
     return NextResponse.json({
-      weeklyFocus: learningPlan.weeklyFocus[0] || 'English Foundations',
-      modules: learningPlan.modules,
-      totalModules: learningPlan.modules.length,
+      weeklyFocus: learningPlan.weeklyFocus[focusIndex] || 'English Foundations',
+      modules,
+      totalModules: modules.length,
     });
   } catch (error) {
     console.error('Learning modules error:', error);
@@ -41,3 +69,4 @@ export async function GET() {
     );
   }
 }
+

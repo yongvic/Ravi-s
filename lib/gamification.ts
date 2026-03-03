@@ -14,11 +14,15 @@ export async function awardPoints(
       userId,
       totalPoints: points,
       weeklyPoints: points,
+      monthlyPoints: points,
       weekStartDate: new Date(),
+      monthStartDate: new Date(),
+      lastEarned: new Date(),
     },
     update: {
       totalPoints: { increment: points },
       weeklyPoints: { increment: points },
+      monthlyPoints: { increment: points },
       lastEarned: new Date(),
     },
   });

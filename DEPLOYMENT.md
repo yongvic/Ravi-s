@@ -1,6 +1,6 @@
-# Deployment Guide - Bali's School
+# Deployment Guide - Ravi's
 
-This guide covers deploying Bali's School to production.
+This guide covers deploying Ravi's to production.
 
 ## Prerequisites
 
@@ -16,7 +16,7 @@ This guide covers deploying Bali's School to production.
 Set up your PostgreSQL database and add these environment variables to Vercel:
 
 ```env
-DATABASE_URL=postgresql://user:password@host:5432/bali_school
+DATABASE_URL=postgresql://user:password@host:5432/ravi_school
 NEXTAUTH_URL=https://your-domain.com
 NEXTAUTH_SECRET=<generate with: openssl rand -base64 32>
 ```
@@ -251,3 +251,4 @@ For deployment issues:
 2. Database provider documentation
 3. Review application logs in Vercel dashboard
 4. Check network tab in browser developer tools
+

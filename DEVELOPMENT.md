@@ -1,8 +1,8 @@
-# Development Guide - Bali's School
+# Development Guide - Ravi's
 
 ## Project Overview
 
-Bali's School is a full-stack English learning platform for aviation professionals. It features:
+Ravi's is a full-stack English learning platform for aviation professionals. It features:
 
 - **User Authentication**: NextAuth.js with email/password and GitHub OAuth
 - **Learning System**: 12-week program with 8 exercise modes and video submissions
@@ -411,3 +411,4 @@ pnpm lint             # Run ESLint
 - NextAuth.js: https://next-auth.js.org
 - Tailwind: https://tailwindcss.com/docs
 - shadcn/ui: https://ui.shadcn.com
+

@@ -7,7 +7,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     
     if (!session?.user?.id) {
       return Response.json(
-        { message: 'Unauthorized' },
+        { message: 'Non autorisé' },
         { status: 401 }
       );
     }
@@ -27,7 +27,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     if (!exercise) {
       return Response.json(
-        { message: 'Exercise not found' },
+        { message: 'Exercice introuvable' },
         { status: 404 }
       );
     }
@@ -42,7 +42,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     if (!ownership) {
       return Response.json(
-        { message: 'Unauthorized' },
+        { message: 'Non autorisé' },
         { status: 403 }
       );
     }
@@ -51,8 +51,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   } catch (error) {
     console.error('Exercise fetch error:', error);
     return Response.json(
-      { message: 'Internal server error' },
+      { message: 'Erreur interne du serveur' },
       { status: 500 }
     );
   }
 }
+

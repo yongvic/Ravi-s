@@ -5,13 +5,13 @@ import { useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, Loader2, Users, Video, MessageSquare, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, Loader2, Users, Video, MessageSquare, CheckCircle2, ChartColumnIncreasing } from 'lucide-react';
 
 interface VideoSubmission {
   id: string;
   userId: string;
   userName: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected' | 'revision_needed';
   submittedAt: string;
   videoUrl: string;
   exerciseTitle: string;
@@ -25,7 +25,9 @@ interface AdminStats {
 }
 
 export default function AdminPage() {
-  const { data: session, status } = useSession();
+  const sessionState = useSession();
+  const session = sessionState?.data;
+  const status = sessionState?.status ?? 'loading';
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [videos, setVideos] = useState<VideoSubmission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +54,7 @@ export default function AdminPage() {
         ]);
 
         if (!statsRes.ok || !videosRes.ok) {
-          throw new Error('Failed to fetch admin data');
+          throw new Error('Échec de chargement des données admin');
         }
 
         const statsData = await statsRes.json();
@@ -61,7 +63,7 @@ export default function AdminPage() {
         setStats(statsData);
         setVideos(videosData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        setError(err instanceof Error ? err.message : 'Une erreur est survenue');
       } finally {
         setLoading(false);
       }
@@ -73,17 +75,18 @@ export default function AdminPage() {
   }, [session?.user?.id, session?.user?.role]);
 
   const handleVideoAction = async (videoId: string, action: 'approve' | 'reject') => {
+    setIsSubmittingFeedback(true);
     try {
       const response = await fetch(`/api/admin/videos/${videoId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          status: action === 'approve' ? 'approved' : 'rejected',
+          status: action === 'approve' ? 'APPROVED' : 'REJECTED',
           feedback: feedbackText,
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to update video');
+      if (!response.ok) throw new Error('Échec de mise à jour vidéo');
 
       // Refresh videos
       const videosRes = await fetch('/api/admin/videos');
@@ -92,7 +95,9 @@ export default function AdminPage() {
       setSelectedVideo(null);
       setFeedbackText('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update video');
+      setError(err instanceof Error ? err.message : 'Échec de mise à jour vidéo');
+    } finally {
+      setIsSubmittingFeedback(false);
     }
   };
 
@@ -101,7 +106,7 @@ export default function AdminPage() {
       <div className="min-h-screen bg-gradient-to-b from-background to-muted flex items-center justify-center">
         <div className="text-center space-y-4">
           <Loader2 className="w-12 h-12 animate-spin mx-auto text-primary" />
-          <p className="text-muted-foreground">Loading admin dashboard...</p>
+          <p className="text-muted-foreground">Chargement du tableau admin...</p>
         </div>
       </div>
     );
@@ -116,8 +121,8 @@ export default function AdminPage() {
       {/* Header */}
       <div className="border-b border-border/40 bg-background/95 backdrop-blur sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-muted-foreground mt-1">Manage student submissions and track progress</p>
+          <h1 className="text-3xl font-bold">Tableau de bord admin</h1>
+          <p className="text-muted-foreground mt-1">Gérez les soumissions élèves et suivez la progression</p>
         </div>
       </div>
 
@@ -137,7 +142,7 @@ export default function AdminPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <Users className="w-4 h-4 text-primary" />
-                  Total Students
+                  Total élèves
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -149,7 +154,7 @@ export default function AdminPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <Video className="w-4 h-4 text-orange-500" />
-                  Pending Videos
+                  Vidéos en attente
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -161,7 +166,7 @@ export default function AdminPage() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  Videos Reviewed
+                  Vidéos revues
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -172,7 +177,7 @@ export default function AdminPage() {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <span>📊</span> Avg Completion
+                  <ChartColumnIncreasing className="w-4 h-4" /> Progression moyenne
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -188,13 +193,13 @@ export default function AdminPage() {
           <div className="lg:col-span-1">
             <Card className="sticky top-24">
               <CardHeader>
-                <CardTitle>Pending Videos</CardTitle>
+                <CardTitle>Vidéos en attente</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 max-h-[600px] overflow-y-auto">
                   {videos.filter(v => v.status === 'pending').length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-4">
-                      No pending videos
+                      Aucune vidéo en attente
                     </p>
                   ) : (
                     videos
@@ -229,7 +234,7 @@ export default function AdminPage() {
                 <CardHeader>
                   <CardTitle>{selectedVideo.exerciseTitle}</CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Submitted by: {selectedVideo.userName}
+                    Soumise par : {selectedVideo.userName}
                   </p>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -237,7 +242,7 @@ export default function AdminPage() {
                   <div className="w-full bg-black rounded-lg overflow-hidden aspect-video flex items-center justify-center">
                     <div className="text-center">
                       <Video className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
-                      <p className="text-muted-foreground">Video Player</p>
+                      <p className="text-muted-foreground">Lecteur vidéo</p>
                       <p className="text-xs text-muted-foreground mt-1">{selectedVideo.videoUrl}</p>
                     </div>
                   </div>
@@ -245,11 +250,11 @@ export default function AdminPage() {
                   {/* Feedback Form */}
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold mb-2">Your Feedback</label>
+                      <label className="block text-sm font-semibold mb-2">Votre feedback</label>
                       <textarea
                         value={feedbackText}
                         onChange={(e) => setFeedbackText(e.target.value)}
-                        placeholder="Provide constructive feedback for the student..."
+                        placeholder="Donnez un feedback structuré pour l'élève..."
                         className="w-full p-3 rounded-lg border border-border bg-background focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition"
                         rows={4}
                       />
@@ -263,7 +268,7 @@ export default function AdminPage() {
                         disabled={isSubmittingFeedback}
                         className="flex-1"
                       >
-                        Reject
+                        Refuser
                       </Button>
                       <Button
                         onClick={() => handleVideoAction(selectedVideo.id, 'approve')}
@@ -273,10 +278,10 @@ export default function AdminPage() {
                         {isSubmittingFeedback ? (
                           <>
                             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Approving...
+                            Validation...
                           </>
                         ) : (
-                          'Approve'
+                          'Valider'
                         )}
                       </Button>
                     </div>
@@ -287,7 +292,7 @@ export default function AdminPage() {
               <Card className="flex items-center justify-center min-h-96">
                 <div className="text-center">
                   <MessageSquare className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
-                  <p className="text-muted-foreground">Select a video to review</p>
+                  <p className="text-muted-foreground">Sélectionnez une vidéo à revoir</p>
                 </div>
               </Card>
             )}
@@ -297,17 +302,17 @@ export default function AdminPage() {
         {/* All Videos Table */}
         <Card>
           <CardHeader>
-            <CardTitle>All Submissions</CardTitle>
+            <CardTitle>Toutes les soumissions</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left py-3 px-4">Student</th>
-                    <th className="text-left py-3 px-4">Exercise</th>
-                    <th className="text-left py-3 px-4">Submitted</th>
-                    <th className="text-left py-3 px-4">Status</th>
+                    <th className="text-left py-3 px-4">Élève</th>
+                    <th className="text-left py-3 px-4">Exercice</th>
+                    <th className="text-left py-3 px-4">Date de soumission</th>
+                    <th className="text-left py-3 px-4">Statut</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -326,7 +331,9 @@ export default function AdminPage() {
                             ? 'bg-green-500/10 text-green-700 dark:text-green-400'
                             : 'bg-red-500/10 text-red-700 dark:text-red-400'
                         }`}>
-                          {video.status.charAt(0).toUpperCase() + video.status.slice(1)}
+                          {video.status === 'revision_needed'
+                            ? 'Révision demandée'
+                            : video.status.charAt(0).toUpperCase() + video.status.slice(1)}
                         </span>
                       </td>
                     </tr>
@@ -340,3 +347,4 @@ export default function AdminPage() {
     </div>
   );
 }
+

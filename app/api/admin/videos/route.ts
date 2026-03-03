@@ -7,7 +7,7 @@ export async function GET(req: Request) {
     
     if (!session?.user?.id || session.user.role !== 'ADMIN') {
       return Response.json(
-        { message: 'Unauthorized' },
+        { message: 'Non autorisé' },
         { status: 401 }
       );
     }
@@ -29,7 +29,7 @@ export async function GET(req: Request) {
         id: v.id,
         userId: v.userId,
         userName: v.user.name || 'Unknown',
-        status: v.status,
+        status: v.status.toLowerCase(),
         submittedAt: v.submittedAt,
         videoUrl: v.blobUrl,
         exerciseTitle: v.exercise.title,
@@ -38,8 +38,9 @@ export async function GET(req: Request) {
   } catch (error) {
     console.error('Admin videos error:', error);
     return Response.json(
-      { message: 'Internal server error' },
+      { message: 'Erreur interne du serveur' },
       { status: 500 }
     );
   }
 }
+

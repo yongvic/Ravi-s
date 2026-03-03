@@ -7,13 +7,13 @@ export async function GET(req: Request) {
     
     if (!session?.user?.id || session.user.role !== 'ADMIN') {
       return Response.json(
-        { message: 'Unauthorized' },
+        { message: 'Non autorisé' },
         { status: 403 }
       );
     }
 
     // Get all stats in parallel
-    const [totalStudents, pendingVideos, approvedVideos, totalExercises] = await Promise.all([
+    const [totalStudents, pendingVideos, approvedVideos, totalExercises, pointsAgg] = await Promise.all([
       prisma.user.count({
         where: { role: 'STUDENT' },
       }),
@@ -25,6 +25,9 @@ export async function GET(req: Request) {
       }),
       prisma.exercise.count({
         where: { completed: true },
+      }),
+      prisma.kikiPoints.aggregate({
+        _sum: { totalPoints: true },
       }),
     ]);
 
@@ -50,15 +53,18 @@ export async function GET(req: Request) {
     return Response.json({
       totalStudents,
       pendingVideos,
+      approvedVideos,
       totalVideosReviewed: approvedVideos,
       averageCompletionRate: Math.round(totalCompletion),
       totalExercises,
+      totalPoints: pointsAgg._sum.totalPoints || 0,
     });
   } catch (error) {
     console.error('Admin stats error:', error);
     return Response.json(
-      { message: 'Internal server error' },
+      { message: 'Erreur interne du serveur' },
       { status: 500 }
     );
   }
 }
+

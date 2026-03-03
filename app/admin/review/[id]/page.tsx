@@ -22,7 +22,8 @@ interface VideoReview {
 }
 
 export default function VideoReviewPage() {
-  const { data: session } = useSession();
+  const sessionState = useSession();
+  const session = sessionState?.data;
   const params = useParams();
   const videoId = params.id as string;
 
@@ -35,7 +36,6 @@ export default function VideoReviewPage() {
   const [grade, setGrade] = useState('80');
   const [strengths, setStrengths] = useState('');
   const [improvements, setImprovements] = useState('');
-  const [recordingAudio, setRecordingAudio] = useState(false);
 
   if (!session?.user) {
     redirect('/auth/signin');
@@ -105,7 +105,7 @@ export default function VideoReviewPage() {
       <div className="min-h-screen bg-gradient-to-b from-background to-muted flex items-center justify-center">
         <Card className="w-full max-w-sm">
           <CardHeader>
-            <CardTitle>Loading Video...</CardTitle>
+            <CardTitle>Chargement de la vidéo...</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -120,7 +120,7 @@ export default function VideoReviewPage() {
       <div className="min-h-screen bg-gradient-to-b from-background to-muted flex items-center justify-center">
         <Card className="w-full max-w-sm">
           <CardHeader>
-            <CardTitle>Video Not Found</CardTitle>
+            <CardTitle>Vidéo introuvable</CardTitle>
           </CardHeader>
         </Card>
       </div>
@@ -133,9 +133,9 @@ export default function VideoReviewPage() {
         {/* Header */}
         <div className="mb-8">
           <Button variant="outline" onClick={() => window.history.back()} className="mb-4">
-            ← Back to Dashboard
+            ← Retour au dashboard
           </Button>
-          <h1 className="text-4xl font-bold mb-2">Review Student Video</h1>
+          <h1 className="text-4xl font-bold mb-2">Revue vidéo élève</h1>
           <p className="text-lg text-muted-foreground">
             {video.studentName} - {video.exerciseTitle}
           </p>
@@ -146,7 +146,7 @@ export default function VideoReviewPage() {
           <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Video Submission</CardTitle>
+                <CardTitle>Soumission vidéo</CardTitle>
               </CardHeader>
               <CardContent>
                 <video
@@ -155,9 +155,9 @@ export default function VideoReviewPage() {
                   src={video.blobUrl}
                 />
                 <div className="mt-4 text-sm text-muted-foreground">
-                  <p>Submitted: {new Date(video.submittedAt).toLocaleString()}</p>
-                  <p>Student: {video.studentName}</p>
-                  <p>Exercise: {video.exerciseTitle}</p>
+                  <p>Soumis: {new Date(video.submittedAt).toLocaleString()}</p>
+                  <p>Élève: {video.studentName}</p>
+                  <p>Exercice: {video.exerciseTitle}</p>
                 </div>
               </CardContent>
             </Card>
@@ -167,7 +167,7 @@ export default function VideoReviewPage() {
           <div className="space-y-6">
             <Tabs defaultValue="decision" className="space-y-4">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="decision">Decision</TabsTrigger>
+                <TabsTrigger value="decision">Décision</TabsTrigger>
                 <TabsTrigger value="feedback">Feedback</TabsTrigger>
               </TabsList>
 
@@ -175,7 +175,7 @@ export default function VideoReviewPage() {
               <TabsContent value="decision" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Review Decision</CardTitle>
+                    <CardTitle>Décision de revue</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <RadioGroup value={decision} onValueChange={(value: any) => setDecision(value)}>
@@ -185,10 +185,10 @@ export default function VideoReviewPage() {
                           <Label htmlFor="approved" className="cursor-pointer flex-1">
                             <div className="flex items-center gap-2 font-semibold text-green-700 dark:text-green-400">
                               <CheckCircle className="w-4 h-4" />
-                              Approve
+                              Approuver
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
-                              Video meets requirements
+                              La vidéo respecte les exigences
                             </p>
                           </Label>
                         </div>
@@ -198,10 +198,10 @@ export default function VideoReviewPage() {
                           <Label htmlFor="revision" className="cursor-pointer flex-1">
                             <div className="flex items-center gap-2 font-semibold text-orange-700 dark:text-orange-400">
                               <AlertCircle className="w-4 h-4" />
-                              Revision Needed
+                              Révision demandée
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
-                              Send feedback, ask for resubmission
+                              Envoyer des retours et demander une nouvelle soumission
                             </p>
                           </Label>
                         </div>
@@ -211,10 +211,10 @@ export default function VideoReviewPage() {
                           <Label htmlFor="rejected" className="cursor-pointer flex-1">
                             <div className="flex items-center gap-2 font-semibold text-red-700 dark:text-red-400">
                               <XCircle className="w-4 h-4" />
-                              Reject
+                              Refuser
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
-                              Does not meet requirements
+                              Ne respecte pas les exigences
                             </p>
                           </Label>
                         </div>
@@ -225,7 +225,7 @@ export default function VideoReviewPage() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Grade</CardTitle>
+                    <CardTitle>Note</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
@@ -249,16 +249,16 @@ export default function VideoReviewPage() {
               <TabsContent value="feedback" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Text Feedback</CardTitle>
+                    <CardTitle>Feedback texte</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="space-y-2">
-                      <Label htmlFor="feedback">Feedback for Student</Label>
+                      <Label htmlFor="feedback">Retour pour l'élève</Label>
                       <Textarea
                         id="feedback"
                         value={textFeedback}
                         onChange={(e) => setTextFeedback(e.target.value)}
-                        placeholder="Provide constructive feedback on the student's performance..."
+                        placeholder="Donnez un feedback constructif sur la performance de l'élève..."
                         rows={4}
                         className="resize-none"
                       />
@@ -268,16 +268,16 @@ export default function VideoReviewPage() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Strengths</CardTitle>
+                    <CardTitle>Points forts</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="space-y-2">
-                      <Label htmlFor="strengths">What went well? (one per line)</Label>
+                      <Label htmlFor="strengths">Ce qui a bien fonctionné (une ligne par point)</Label>
                       <Textarea
                         id="strengths"
                         value={strengths}
                         onChange={(e) => setStrengths(e.target.value)}
-                        placeholder="Clear pronunciation&#10;Good confidence&#10;Natural intonation"
+                        placeholder="Prononciation claire&#10;Bonne confiance&#10;Intonation naturelle"
                         rows={3}
                         className="resize-none"
                       />
@@ -287,16 +287,16 @@ export default function VideoReviewPage() {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle>Areas for Improvement</CardTitle>
+                    <CardTitle>Axes d'amélioration</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="space-y-2">
-                      <Label htmlFor="improvements">What needs improvement? (one per line)</Label>
+                      <Label htmlFor="improvements">Ce qu'il faut améliorer (une ligne par point)</Label>
                       <Textarea
                         id="improvements"
                         value={improvements}
                         onChange={(e) => setImprovements(e.target.value)}
-                        placeholder="Work on stress patterns&#10;Slow down a bit&#10;Practice vowel sounds"
+                        placeholder="Travailler l'accentuation&#10;Ralentir légèrement&#10;Renforcer les voyelles"
                         rows={3}
                         className="resize-none"
                       />
@@ -313,7 +313,7 @@ export default function VideoReviewPage() {
               size="lg"
               className="w-full"
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
+              {isSubmitting ? 'Soumission...' : 'Soumettre le feedback'}
             </Button>
           </div>
         </div>
@@ -321,3 +321,4 @@ export default function VideoReviewPage() {
     </div>
   );
 }
+

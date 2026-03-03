@@ -30,13 +30,13 @@ export default function SignUpPage() {
 
     try {
       if (formData.password !== formData.confirmPassword) {
-        toast.error('Passwords do not match');
+        toast.error('Les mots de passe ne correspondent pas');
         setIsLoading(false);
         return;
       }
 
       if (formData.password.length < 8) {
-        toast.error('Password must be at least 8 characters');
+        toast.error('Le mot de passe doit contenir au moins 8 caractères');
         setIsLoading(false);
         return;
       }
@@ -53,7 +53,6 @@ export default function SignUpPage() {
         return;
       }
 
-      // Sign in user automatically
       const { signIn } = await import('next-auth/react');
       const signInResult = await signIn('credentials', {
         email: formData.email,
@@ -62,11 +61,11 @@ export default function SignUpPage() {
       });
 
       if (signInResult?.ok) {
-        toast.success('Account created! Redirecting...');
+        toast.success('Compte créé. Redirection...');
         router.push('/onboarding');
       }
     } catch (error) {
-      toast.error('An error occurred. Please try again.');
+      toast.error('Une erreur est survenue. Veuillez réessayer.');
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -77,20 +76,18 @@ export default function SignUpPage() {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-2">
-          <CardTitle className="text-2xl">Create Account</CardTitle>
-          <CardDescription>
-            Join Bali&apos;s School and start your English journey
-          </CardDescription>
+          <CardTitle className="text-2xl">Créer un compte</CardTitle>
+          <CardDescription>Rejoignez Ravi&apos;s et démarrez votre progression en anglais</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name">Nom complet</Label>
               <Input
                 id="name"
                 name="name"
                 type="text"
-                placeholder="John Doe"
+                placeholder="Jean Dupont"
                 value={formData.name}
                 onChange={handleChange}
                 required
@@ -103,7 +100,7 @@ export default function SignUpPage() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="vous@exemple.com"
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -111,7 +108,7 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Mot de passe</Label>
               <Input
                 id="password"
                 name="password"
@@ -121,13 +118,11 @@ export default function SignUpPage() {
                 onChange={handleChange}
                 required
               />
-              <p className="text-xs text-muted-foreground">
-                At least 8 characters
-              </p>
+              <p className="text-xs text-muted-foreground">Au moins 8 caractères</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
               <Input
                 id="confirmPassword"
                 name="confirmPassword"
@@ -140,7 +135,7 @@ export default function SignUpPage() {
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Creating Account...' : 'Create Account'}
+              {isLoading ? 'Création...' : 'Créer mon compte'}
             </Button>
 
             <div className="relative">
@@ -148,14 +143,14 @@ export default function SignUpPage() {
                 <div className="w-full border-t border-border"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-card text-muted-foreground">or</span>
+                <span className="px-2 bg-card text-muted-foreground">ou</span>
               </div>
             </div>
 
             <div className="text-sm text-center">
-              Already have an account?{' '}
+              Déjà inscrit ?{' '}
               <Link href="/auth/signin" className="text-primary hover:underline font-semibold">
-                Sign In
+                Se connecter
               </Link>
             </div>
           </form>

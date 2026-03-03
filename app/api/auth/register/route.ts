@@ -70,15 +70,16 @@ export async function POST(req: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return Response.json(
-        { message: 'Invalid input', errors: error.errors },
+        { message: 'Données invalides', errors: error.errors },
         { status: 400 }
       );
     }
 
     console.error('Register error:', error);
     return Response.json(
-      { message: 'Internal server error' },
+      { message: 'Erreur interne du serveur' },
       { status: 500 }
     );
   }
 }
+

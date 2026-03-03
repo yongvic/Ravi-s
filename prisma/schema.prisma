@@ -183,6 +183,14 @@ enum ExerciseMode {
   ROLE_PLAY          // Pre-written dialogue
   LISTENING          // Audio comprehension
   EMERGENCY          // Safety phrase practice
+  READING            // Reading comprehension in English
+  QUIZ               // English quizzes by level
+  VOCABULARY         // Aviation vocabulary drills
+  SPEAKING           // Guided speaking practice
+  CABIN_SIMULATION   // Cabin simulation scenarios
+  LOVE_AND_ENGLISH   // Human-relations communication scenarios
+  INTERVIEW_COMPANY  // Airline interview preparation
+  LOST_PASSENGER     // Lost passenger handling scenarios
   CUSTOM             // User-uploaded scenario
 }
 
@@ -343,4 +351,16 @@ model AirportMap {
   updatedAt          DateTime           @updatedAt
   
   @@index([userId])
+}
+
+// Password Reset Tokens (single-use, expire in 1 hour)
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([token])
 }
