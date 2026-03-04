@@ -17,11 +17,16 @@ export const metadata: Metadata = {
         type: 'image/svg+xml',
         sizes: '16x16 32x32',
       },
+      {
+        url: '/icon-light-32x32.png',
+        type: 'image/png',
+        sizes: '32x32',
+      },
     ],
     shortcut: [
       {
-        url: '/flaticon.svg',
-        type: 'image/svg+xml',
+        url: '/icon-light-32x32.png',
+        type: 'image/png',
         sizes: '16x16',
       },
     ],

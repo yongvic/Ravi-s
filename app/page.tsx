@@ -19,14 +19,21 @@ export default function LandingPage() {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       {/* Navigation */}
       <nav className="border-b border-border/40 sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Image src="/logo.svg" alt="Ravi's" width={132} height={32} className="h-8 w-auto max-w-[132px] md:h-7 md:max-w-[122px]" priority />
-          <div className="flex gap-4">
+        <div className="max-w-6xl mx-auto px-3 md:px-4 py-3 md:py-4 flex items-center justify-between gap-2">
+          <Image
+            src="/logo.svg"
+            alt="Ravi's"
+            width={120}
+            height={30}
+            className="h-5 w-auto max-w-[98px] sm:h-6 sm:max-w-[110px]"
+            priority
+          />
+          <div className="flex gap-2 sm:gap-4">
             <Link href="/auth/signin">
-              <Button variant="ghost">Se connecter</Button>
+              <Button variant="ghost" size="sm">Se connecter</Button>
             </Link>
             <Link href="/auth/signup">
-              <Button>Commencer</Button>
+              <Button size="sm">Commencer</Button>
             </Link>
           </div>
         </div>

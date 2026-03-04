@@ -127,24 +127,31 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       <div className="border-b border-border bg-background sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="max-w-6xl mx-auto px-3 md:px-4 py-3 md:py-4 flex flex-wrap items-center justify-between gap-2 md:gap-3">
           <div className="flex items-center gap-3">
-            <Image src="/logo.svg" alt="Ravi's" width={132} height={32} className="h-8 w-auto max-w-[132px] md:h-7 md:max-w-[122px]" priority />
+            <Image
+              src="/logo.svg"
+              alt="Ravi's"
+              width={120}
+              height={30}
+              className="h-5 w-auto max-w-[98px] sm:h-6 sm:max-w-[112px]"
+              priority
+            />
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Avatar className="h-10 w-10 border">
+          <div className="flex flex-wrap items-center gap-2">
+            <Avatar className="h-8 w-8 md:h-10 md:w-10 border">
               <AvatarImage src={session.user.image || undefined} alt={session.user.name || 'Profil'} />
               <AvatarFallback>
                 {session.user.name?.slice(0, 1).toUpperCase() || <User className="w-4 h-4" />}
               </AvatarFallback>
             </Avatar>
-            <div>
+            <div className="hidden sm:block">
               <p className="text-sm text-muted-foreground">Bienvenue,</p>
-              <p className="font-semibold">{session.user.name}</p>
+              <p className="font-semibold truncate max-w-36">{session.user.name}</p>
             </div>
-            <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
+            <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2 h-8 px-2.5 md:h-9 md:px-3">
               <LogOut className="w-4 h-4" />
-              Déconnexion
+              <span className="hidden sm:inline">Déconnexion</span>
             </Button>
           </div>
         </div>
