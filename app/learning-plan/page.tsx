@@ -38,8 +38,7 @@ export default function LearningPlanPage() {
   const router = useRouter();
   const [plan, setPlan] = useState<LearningPlan | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  // isDownloading kept for API compatibility but unused now
-  const [isDownloading] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [justGenerated, setJustGenerated] = useState(false);
   const [levelToApply, setLevelToApply] = useState('B1');
   const [focusInput, setFocusInput] = useState('');
@@ -101,9 +100,21 @@ export default function LearningPlanPage() {
     fetchPlan();
   }, [session?.user?.id, status, router]);
 
-  const handleDownloadPDF = () => {
-    // Open the print page in a new tab — the browser handles PDF generation natively
-    window.open('/learning-plan/print', '_blank');
+  const handleDownloadPDF = async () => {
+    setIsDownloading(true);
+    try {
+      const printWindow = window.open('/learning-plan/print', '_blank', 'noopener,noreferrer');
+      if (!printWindow) {
+        throw new Error('Le navigateur a bloqué la fenêtre d’impression.');
+      }
+      toast.success('La vue d’impression est ouverte. Choisissez "Enregistrer au format PDF".');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Impossible de télécharger le PDF';
+      toast.error(message);
+      console.error(error);
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleUpdatePlan = async () => {
