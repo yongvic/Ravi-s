@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { redirect, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -46,6 +46,7 @@ export default function LearningPlanPage() {
   const [weeklyObjectivesInput, setWeeklyObjectivesInput] = useState('');
   const [skillFocusesInput, setSkillFocusesInput] = useState('');
   const [exerciseSuggestionsInput, setExerciseSuggestionsInput] = useState('');
+  const pdfContainerRef = useRef<HTMLDivElement | null>(null);
 
   if (status === 'unauthenticated') {
     redirect('/auth/signin');
@@ -103,11 +104,45 @@ export default function LearningPlanPage() {
   const handleDownloadPDF = async () => {
     setIsDownloading(true);
     try {
-      const printWindow = window.open('/learning-plan/print', '_blank', 'noopener,noreferrer');
-      if (!printWindow) {
-        throw new Error('Le navigateur a bloqué la fenêtre d’impression.');
+      if (!plan || !pdfContainerRef.current) {
+        throw new Error('Le plan est indisponible pour le téléchargement.');
       }
-      toast.success('La vue d’impression est ouverte. Choisissez "Enregistrer au format PDF".');
+
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+      ]);
+
+      const canvas = await html2canvas(pdfContainerRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 10;
+      const contentWidth = pageWidth - margin * 2;
+      const contentHeight = (canvas.height * contentWidth) / canvas.width;
+
+      let heightLeft = contentHeight;
+      let position = margin;
+
+      pdf.addImage(imgData, 'PNG', margin, position, contentWidth, contentHeight);
+      heightLeft -= pageHeight - margin * 2;
+
+      while (heightLeft > 0) {
+        position = -(contentHeight - heightLeft) + margin;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', margin, position, contentWidth, contentHeight);
+        heightLeft -= pageHeight - margin * 2;
+      }
+
+      pdf.save('plan-apprentissage-ravis.pdf');
+      toast.success('Plan PDF téléchargé avec succès.');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Impossible de télécharger le PDF';
       toast.error(message);
@@ -430,6 +465,60 @@ export default function LearningPlanPage() {
           </CardContent>
         </Card>
       </div>
+
+      {plan && (
+        <div
+          ref={pdfContainerRef}
+          className="fixed left-[-99999px] top-0 w-[900px] bg-white text-black p-8"
+          aria-hidden
+        >
+          <div className="text-center mb-6">
+            <h1 className="text-3xl font-bold text-blue-700">Plan d&apos;apprentissage - 12 semaines</h1>
+            <p className="text-sm text-slate-600 mt-1">Généré le {new Date().toLocaleDateString('fr-FR')}</p>
+          </div>
+
+          <section className="mb-6">
+            <h2 className="text-xl font-semibold text-blue-700 mb-2">Objectifs 30 / 60 / 90 jours</h2>
+            <div className="grid grid-cols-3 gap-3">
+              {[{ label: '30 jours', goals: plan.goals30 || [] }, { label: '60 jours', goals: plan.goals60 || [] }, { label: '90 jours', goals: plan.goals90 || [] }].map((group) => (
+                <div key={group.label} className="rounded border border-slate-200 bg-slate-50 p-3">
+                  <h3 className="font-semibold mb-2">{group.label}</h3>
+                  <ul className="list-disc pl-4 text-xs space-y-1">
+                    {group.goals.map((goal, index) => <li key={`${group.label}-${index}`}>{goal}</li>)}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="mb-6">
+            <h2 className="text-xl font-semibold text-blue-700 mb-2">Compétences à maîtriser</h2>
+            <ul className="list-disc pl-5 text-sm space-y-1">
+              {(plan.skillFocuses || []).map((skill) => <li key={skill}>{skill}</li>)}
+            </ul>
+          </section>
+
+          <section className="mb-6">
+            <h2 className="text-xl font-semibold text-blue-700 mb-2">Exercices suggérés</h2>
+            <ul className="list-disc pl-5 text-sm space-y-1">
+              {(plan.exerciseSuggestions || []).map((exercise) => <li key={exercise}>{exercise}</li>)}
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-blue-700 mb-2">Modules par semaine</h2>
+            <div className="space-y-2">
+              {plan.modules.map((module) => (
+                <div key={module.week} className="rounded border border-slate-200 p-3">
+                  <p className="font-semibold">Semaine {module.week} - {module.title}</p>
+                  <p className="text-xs text-slate-700 mt-1">{module.description}</p>
+                  <p className="text-xs text-slate-500 mt-1">Objectif: {module.targetPoints} points Kiki</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
