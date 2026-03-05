@@ -52,7 +52,7 @@ export async function POST(req: Request) {
       if (!process.env.BLOB_READ_WRITE_TOKEN) {
         throw new Error('blob_token_missing');
       }
-      const blob = await put(`avatars/${filename}`, buffer, {
+      const blob = await put(`avatars/${filename}`, file, {
         access: 'public',
         contentType: file.type,
       });
