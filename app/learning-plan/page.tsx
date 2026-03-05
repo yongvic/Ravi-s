@@ -118,6 +118,11 @@ export default function LearningPlanPage() {
         useCORS: true,
         backgroundColor: '#ffffff',
         logging: false,
+        onclone: (clonedDoc) => {
+          clonedDoc.documentElement.style.backgroundColor = '#ffffff';
+          clonedDoc.body.style.backgroundColor = '#ffffff';
+          clonedDoc.body.style.color = '#111827';
+        },
       });
 
       const imgData = canvas.toDataURL('image/png');
@@ -469,21 +474,30 @@ export default function LearningPlanPage() {
       {plan && (
         <div
           ref={pdfContainerRef}
-          className="fixed left-[-99999px] top-0 w-[900px] bg-white text-black p-8"
+          style={{
+            position: 'fixed',
+            left: '-99999px',
+            top: 0,
+            width: '900px',
+            backgroundColor: '#ffffff',
+            color: '#111827',
+            padding: '32px',
+            fontFamily: 'Segoe UI, Arial, sans-serif',
+          }}
           aria-hidden
         >
-          <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-blue-700">Plan d&apos;apprentissage - 12 semaines</h1>
-            <p className="text-sm text-slate-600 mt-1">Généré le {new Date().toLocaleDateString('fr-FR')}</p>
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <h1 style={{ fontSize: '30px', fontWeight: 700, color: '#1d4ed8', margin: 0 }}>Plan d&apos;apprentissage - 12 semaines</h1>
+            <p style={{ fontSize: '12px', color: '#475569', marginTop: '8px' }}>Généré le {new Date().toLocaleDateString('fr-FR')}</p>
           </div>
 
-          <section className="mb-6">
-            <h2 className="text-xl font-semibold text-blue-700 mb-2">Objectifs 30 / 60 / 90 jours</h2>
-            <div className="grid grid-cols-3 gap-3">
+          <section style={{ marginBottom: '24px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#1d4ed8', marginBottom: '8px' }}>Objectifs 30 / 60 / 90 jours</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '12px' }}>
               {[{ label: '30 jours', goals: plan.goals30 || [] }, { label: '60 jours', goals: plan.goals60 || [] }, { label: '90 jours', goals: plan.goals90 || [] }].map((group) => (
-                <div key={group.label} className="rounded border border-slate-200 bg-slate-50 p-3">
-                  <h3 className="font-semibold mb-2">{group.label}</h3>
-                  <ul className="list-disc pl-4 text-xs space-y-1">
+                <div key={group.label} style={{ borderRadius: '8px', border: '1px solid #e2e8f0', backgroundColor: '#f8fafc', padding: '12px' }}>
+                  <h3 style={{ fontWeight: 600, marginBottom: '8px' }}>{group.label}</h3>
+                  <ul style={{ paddingLeft: '16px', fontSize: '12px', margin: 0 }}>
                     {group.goals.map((goal, index) => <li key={`${group.label}-${index}`}>{goal}</li>)}
                   </ul>
                 </div>
@@ -491,28 +505,28 @@ export default function LearningPlanPage() {
             </div>
           </section>
 
-          <section className="mb-6">
-            <h2 className="text-xl font-semibold text-blue-700 mb-2">Compétences à maîtriser</h2>
-            <ul className="list-disc pl-5 text-sm space-y-1">
+          <section style={{ marginBottom: '24px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#1d4ed8', marginBottom: '8px' }}>Compétences à maîtriser</h2>
+            <ul style={{ paddingLeft: '18px', fontSize: '14px', margin: 0 }}>
               {(plan.skillFocuses || []).map((skill) => <li key={skill}>{skill}</li>)}
             </ul>
           </section>
 
-          <section className="mb-6">
-            <h2 className="text-xl font-semibold text-blue-700 mb-2">Exercices suggérés</h2>
-            <ul className="list-disc pl-5 text-sm space-y-1">
+          <section style={{ marginBottom: '24px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#1d4ed8', marginBottom: '8px' }}>Exercices suggérés</h2>
+            <ul style={{ paddingLeft: '18px', fontSize: '14px', margin: 0 }}>
               {(plan.exerciseSuggestions || []).map((exercise) => <li key={exercise}>{exercise}</li>)}
             </ul>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-blue-700 mb-2">Modules par semaine</h2>
-            <div className="space-y-2">
+            <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#1d4ed8', marginBottom: '8px' }}>Modules par semaine</h2>
+            <div style={{ display: 'grid', gap: '8px' }}>
               {plan.modules.map((module) => (
-                <div key={module.week} className="rounded border border-slate-200 p-3">
-                  <p className="font-semibold">Semaine {module.week} - {module.title}</p>
-                  <p className="text-xs text-slate-700 mt-1">{module.description}</p>
-                  <p className="text-xs text-slate-500 mt-1">Objectif: {module.targetPoints} points Kiki</p>
+                <div key={module.week} style={{ borderRadius: '8px', border: '1px solid #e2e8f0', padding: '12px' }}>
+                  <p style={{ fontWeight: 600, margin: 0 }}>Semaine {module.week} - {module.title}</p>
+                  <p style={{ fontSize: '12px', color: '#334155', marginTop: '4px' }}>{module.description}</p>
+                  <p style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>Objectif: {module.targetPoints} points Kiki</p>
                 </div>
               ))}
             </div>
